@@ -50,6 +50,42 @@ Suggested starting points:
 
 Each application directory contains its own `package.json` and local documentation. Where available, use the scripts documented in those local files instead of assuming a root-level bootstrap command.
 
+## Documentation conventions
+
+This repository uses **JSDoc** as the primary code documentation style for JavaScript source files.
+
+At minimum, documentation is expected for:
+
+- public classes and exported functions in `packages/ulda-sign/ulda-sign.js`
+- public classes and exported functions in `packages/ulda-front/ulda-front.js`
+- exported HTTP-facing handlers and server factories in the demo server applications
+- important configuration and payload shapes that are reused across the codebase
+
+The most important JSDoc tags in this project are:
+
+- `@param`
+- `@returns`
+- `@throws`
+- `@typedef`
+- `@example`
+
+Documentation must be updated when:
+
+- a public interface changes
+- a function starts accepting a new config shape or payload shape
+- a behavior-related example becomes outdated
+- a generated documentation build would otherwise diverge from the actual implementation
+
+Supporting documentation lives in:
+
+- `docs/architecture.md`
+- `docs/algorithms.md`
+- `docs/interactions.md`
+- `docs/generate_docs.md`
+
+Generated HTML documentation is produced into `generated-docs/jsdoc/`.
+Living documentation examples are kept in JSDoc `@example` blocks and in the existing test files under `packages/*/tests/`.
+
 ## Security and privacy note
 
 This repository is intended to avoid storing private or sensitive information in version control. Example environment files may be included as configuration templates, but they are not secrets and should not be treated as deployed credentials.
