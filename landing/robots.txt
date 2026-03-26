@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://iammarguuss.github.io/ulda-bachelor/landing/sitemap.xml
