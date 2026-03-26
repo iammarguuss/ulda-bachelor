@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" role="img" aria-label="Illustration of ULDA stateless verification workflow">
+  <defs>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fefefe"/>
+      <stop offset="100%" stop-color="#edf4f8"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#0e5a8a"/>
+      <stop offset="100%" stop-color="#2d8ec8"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="420" rx="32" fill="#ffffff"/>
+  <rect x="40" y="56" width="150" height="108" rx="24" fill="url(#panel)" stroke="#d0dbe2"/>
+  <rect x="205" y="156" width="150" height="108" rx="24" fill="url(#panel)" stroke="#d0dbe2"/>
+  <rect x="370" y="256" width="150" height="108" rx="24" fill="url(#panel)" stroke="#d0dbe2"/>
+  <path d="M188 110c48 8 73 21 93 54" fill="none" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M353 210c48 8 73 21 93 54" fill="none" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="115" cy="92" r="24" fill="#0e5a8a"/>
+  <circle cx="280" cy="192" r="24" fill="#0e5a8a"/>
+  <circle cx="445" cy="292" r="24" fill="#0e5a8a"/>
+  <path d="M109 93l6 6 12-15" fill="none" stroke="#f5f3ed" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M274 193l6 6 12-15" fill="none" stroke="#f5f3ed" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M439 293l6 6 12-15" fill="none" stroke="#f5f3ed" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <text x="67" y="135" fill="#1f2430" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Request</text>
+  <text x="50" y="152" fill="#5e6472" font-family="Segoe UI, Arial, sans-serif" font-size="14">Client sends state token</text>
+  <text x="226" y="235" fill="#1f2430" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Verify</text>
+  <text x="220" y="252" fill="#5e6472" font-family="Segoe UI, Arial, sans-serif" font-size="14">ULDA checks forward state</text>
+  <text x="410" y="335" fill="#1f2430" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Update</text>
+  <text x="388" y="352" fill="#5e6472" font-family="Segoe UI, Arial, sans-serif" font-size="14">Minimal metadata disclosure</text>
+</svg>
