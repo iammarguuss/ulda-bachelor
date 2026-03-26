@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "maxNodeModuleJsDepth": 0,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "packages/**/*.js",
+    "applications/*/src/**/*.js",
+    "applications/*/scripts/**/*.js",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "assets/**",
+    "landing/assets/**",
+    "applications/*/browser-test/**",
+    "applications/example-password-keeper/public/**"
+  ]
+}

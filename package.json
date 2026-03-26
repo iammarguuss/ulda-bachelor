@@ -1,0 +1,25 @@
+{
+  "name": "ulda-bachelor-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repository-level tooling for linting and static analysis in the ULDA bachelor workspace.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint --max-warnings=0 \"packages/**/*.js\" \"applications/**/*.js\"",
+    "lint:fix": "npm run lint -- --fix",
+    "typecheck": "tsc --project tsconfig.json",
+    "check": "npm run lint && npm run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "typescript": "^5.8.2"
+  }
+}

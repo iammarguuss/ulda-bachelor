@@ -126,6 +126,7 @@ dist
 .vscode-test
 .vscode/
 .idea/
+.husky/_/
 
 # OS files
 .DS_Store
