@@ -1,6 +1,46 @@
 import UldaSign from "../ulda-sign/ulda-sign.js";
 
 /**
+ * @typedef {Object} UldaFrontOptions
+ * @property {boolean} [autosave=true] Automatically flushes pending mutations after proxy changes.
+ * @property {number} [autosaveDebounceMs=0] Delay in milliseconds before an autosave flush is scheduled.
+ * @property {boolean} [allowInsecureLocalhost=false] Allows `http://localhost` and `ws://localhost` style demo connections.
+ * @property {number} [maxMutationDepth=64] Maximum supported nested proxy mutation depth.
+ * @property {number} [maxLogicalNameLength=128] Maximum accepted top-level logical key length.
+ */
+
+/**
+ * @typedef {Object} UldaRecordEnvelope
+ * @property {string|number} id Record identifier returned by the backend adapter.
+ * @property {string} content Serialized encrypted envelope.
+ * @property {string} [ulda_key] Serialized ULDA signature or state key.
+ */
+
+/**
+ * @typedef {Object} UldaAdapter
+ * @property {(options: { serverConnection: string, uldaKey: string, content: string }) => Promise<{ id: number|string }>} createMasterRecord
+ * @property {(options: { serverConnection: string, id: number|string }) => Promise<UldaRecordEnvelope>} readRecord
+ * @property {(options: { serverConnection: string, uldaKey: string, content: string }) => Promise<{ id: number|string }>} createContentRecord
+ * @property {(options: { serverConnection: string, id: number|string, uldaKey: string, content: string }) => Promise<{ ok: true }|object>} updateRecord
+ * @property {(options: { serverConnection: string, id: number|string, uldaKey: string }) => Promise<{ ok: true }|object>} deleteRecord
+ * @property {(options: { password: string|Uint8Array }) => Promise<any>} deriveMasterKey
+ * @property {() => Promise<string>} generateContentKey
+ * @property {(options: { role: "master"|"content", plaintext: object, key: any }) => Promise<string>} encryptEnvelope
+ * @property {(options: { role: "master"|"content", encrypted: string|Uint8Array|object, key: any }) => Promise<any>} decryptEnvelope
+ * @property {(options: { role: "master"|"content", serverConnection: string }) => Promise<string>} createInitialOrigin
+ * @property {(options: { originPkg: string, serverConnection: string }) => Promise<{ nextOriginPkg: string, nextSignature: string }>} stepUpAndSign
+ */
+
+/**
+ * @typedef {Object} UldaMutationSummary
+ * @property {boolean} ok Operation status.
+ * @property {boolean} [skipped] Indicates that there was nothing to flush.
+ * @property {number} [created] Number of created logical content records.
+ * @property {number} [updated] Number of updated logical content records.
+ * @property {number} [deleted] Number of deleted logical content records.
+ */
+
+/**
  * ULDA Frontend API
  *
  * This file provides:
@@ -464,6 +504,23 @@ function createCoreAdapter({
   };
 }
 
+/**
+ * Creates an adapter that maps ULDA client operations to the REST endpoints used by the repository demo servers.
+ *
+ * @param {{
+ *   fetchImpl?: typeof fetch,
+ *   signConfig?: object|null,
+ *   configBaseUrl?: string|null,
+ *   kdfIterations?: number
+ * }} [options]
+ * @returns {UldaAdapter} Adapter compatible with {@link UldaFront}.
+ *
+ * @example
+ * const adapter = createRestAdapter({
+ *   fetchImpl: fetch,
+ *   signConfig: { originSize: 256, N: 5, mode: "S", hash: "SHA-256" }
+ * });
+ */
 export function createRestAdapter({
   fetchImpl = globalThis.fetch,
   signConfig = null,
@@ -562,6 +619,29 @@ export function createRestAdapter({
  *   timeoutMs?: number
  * }} [options]
  */
+/**
+ * Creates a Socket.IO-based adapter for ULDA cabinet operations.
+ *
+ * The adapter expects a socket object with `emit(event, payload, callback)` semantics compatible with the demo servers.
+ *
+ * @param {{
+ *   socket?: { emit: Function },
+ *   fetchImpl?: typeof fetch,
+ *   signConfig?: object|null,
+ *   configBaseUrl?: string|null,
+ *   kdfIterations?: number,
+ *   timeoutMs?: number
+ * }} [options]
+ * @returns {UldaAdapter} Adapter compatible with {@link UldaFront}.
+ *
+ * @example
+ * const adapter = createSocketIOAdapter({
+ *   socket,
+ *   fetchImpl: fetch,
+ *   signConfig: { originSize: 256, N: 5, mode: "S", hash: "SHA-256" },
+ *   configBaseUrl: "http://localhost:8787"
+ * });
+ */
 export function createSocketIOAdapter({
   socket,
   fetchImpl = globalThis.fetch,
@@ -658,6 +738,9 @@ export function createSocketIOAdapter({
   });
 }
 
+/**
+ * Base error for ULDA frontend client failures.
+ */
 export class UldaFrontError extends Error {
   constructor(message, code = "ULDA_FRONT_ERROR", cause) {
     super(message);
@@ -667,6 +750,9 @@ export class UldaFrontError extends Error {
   }
 }
 
+/**
+ * Thrown when security-relevant assumptions are violated, for example unsupported transport or malformed encrypted data.
+ */
 export class UldaSecurityError extends UldaFrontError {
   constructor(message, cause) {
     super(message, "ULDA_SECURITY_ERROR", cause);
@@ -674,6 +760,9 @@ export class UldaSecurityError extends UldaFrontError {
   }
 }
 
+/**
+ * Thrown when client lifecycle or configuration state is invalid for the attempted operation.
+ */
 export class UldaStateError extends UldaFrontError {
   constructor(message, cause) {
     super(message, "ULDA_STATE_ERROR", cause);
@@ -681,6 +770,9 @@ export class UldaStateError extends UldaFrontError {
   }
 }
 
+/**
+ * Thrown when an adapter or runtime capability has not been implemented for the requested operation.
+ */
 export class UldaNotImplementedError extends UldaFrontError {
   constructor(message, cause) {
     super(message, "ULDA_NOT_IMPLEMENTED", cause);
@@ -700,6 +792,26 @@ export class UldaNotImplementedError extends UldaFrontError {
  * - conflict resolution across concurrent writers
  * - transaction-like atomicity across master + multiple content records
  * - advanced retry policy tuning
+ */
+/**
+ * Frontend-oriented ULDA client for encrypted cabinet-like data managed through adapters.
+ *
+ * The class keeps decrypted state in memory, exposes a proxy-based `data` view,
+ * and synchronizes logical content entries through ULDA forward state transitions.
+ *
+ * @example
+ * const adapter = createRestAdapter({
+ *   fetchImpl: fetch,
+ *   signConfig: { originSize: 256, N: 5, mode: "S", hash: "SHA-256" }
+ * });
+ * const client = new UldaFront(null, null, "http://localhost:8787", {
+ *   adapter,
+ *   options: { allowInsecureLocalhost: true, autosave: false }
+ * });
+ * const created = await client.create({ password: "master-pass" });
+ * client.data.profile = { city: "Kyiv" };
+ * await client.update();
+ * console.log(created.id);
  */
 export default class UldaFront {
   #adapter;
@@ -767,6 +879,8 @@ export default class UldaFront {
   /**
    * Proxy view over decrypted logical cabinet data.
    * Mutations schedule autosave (unless disabled).
+   *
+   * @returns {object} Proxy-backed logical data object.
    */
   get data() {
     this.#assertOpen();
@@ -775,6 +889,8 @@ export default class UldaFront {
 
   /**
    * Master record id for current session.
+   *
+   * @returns {number|string|null} Current master record identifier.
    */
   get id() {
     return this.#masterId;
@@ -784,6 +900,8 @@ export default class UldaFront {
    * Connect to existing master cabinet.
    *
    * @param {{ id?: number|string|null, password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
+   * @returns {Promise<{ ok: true, id: number|string|null }>} Operation result with resolved master id.
+   * @throws {UldaStateError|UldaSecurityError} Throws when required connection data is missing or transport is unsafe.
    */
   async connect({ id = this.#masterId, password, serverConnection = this.#serverUrl } = {}) {
     this.#assertOpen();
@@ -848,6 +966,8 @@ export default class UldaFront {
    * - master record created with empty links/data
    *
    * @param {{ password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
+   * @returns {Promise<{ ok: true, id: number|string }>} Operation result with the created master id.
+   * @throws {UldaStateError|UldaSecurityError} Throws when password or transport requirements are not satisfied.
    */
   async create({ password, serverConnection = this.#serverUrl } = {}) {
     this.#assertOpen();
@@ -898,6 +1018,8 @@ export default class UldaFront {
 
   /**
    * Force synchronization of all pending mutations.
+   *
+   * @returns {Promise<UldaMutationSummary>} Flush summary.
    */
   async update() {
     this.#assertConnected();
@@ -906,6 +1028,8 @@ export default class UldaFront {
 
   /**
    * Reload all data from server and rebuild local cache.
+   *
+   * @returns {Promise<{ ok: true, id: number|string|null }>} Same result shape as {@link UldaFront#connect}.
    */
   async reload() {
     this.#assertConnected();
@@ -920,6 +1044,10 @@ export default class UldaFront {
    *
    * - delete()             -> delete whole master cabinet (+ best-effort contents)
    * - delete("name")       -> delete one logical content entry
+   *
+   * @param {string|null|undefined} [target] Logical key to delete, or omit to delete the whole cabinet.
+   * @returns {Promise<{ ok: boolean, scheduled?: boolean, reason?: string, key?: string }|{ ok: true }>} Deletion result.
+   * @throws {UldaStateError} Throws when a logical key is invalid.
    */
   async delete(target) {
     this.#assertConnected();
@@ -934,6 +1062,8 @@ export default class UldaFront {
 
   /**
    * Close client, clear secrets and in-memory state.
+   *
+   * @returns {Promise<{ ok: true }>} Successful close result.
    */
   async close() {
     if (this.#closed) return { ok: true };

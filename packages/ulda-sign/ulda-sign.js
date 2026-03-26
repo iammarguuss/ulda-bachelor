@@ -1,4 +1,62 @@
+/**
+ * @typedef {"hex"|"base64"|"bytes"} UldaExportFormat
+ */
+
+/**
+ * @typedef {Object} UldaExternalHasherConfig
+ * @property {(input: Uint8Array) => Promise<Uint8Array|string>|Uint8Array|string} fn External hashing implementation.
+ * @property {"bytes"|"hex"|"base64"} [output="bytes"] Output format produced by the hasher.
+ * @property {number|null} [size=null] Expected output size in bits when the hash size is fixed.
+ * @property {string|null} [cdn=null] Optional script URL used to lazy-load the implementation in browser environments.
+ * @property {boolean} [ready=true] Marks whether the external hasher is already available.
+ */
+
+/**
+ * @typedef {Object} UldaSignConfig
+ * @property {string} [version="1"] Version marker kept in the internal global config.
+ * @property {{ export?: UldaExportFormat }} [fmt] Output serialization format for exported origin and signature packages.
+ * @property {{
+ *   N?: number,
+ *   mode?: "S"|"X",
+ *   hash?: string,
+ *   originSize?: number,
+ *   pack?: string,
+ *   func?: (input: Uint8Array) => Promise<Uint8Array|string>|Uint8Array|string,
+ *   output?: "bytes"|"hex"|"base64",
+ *   cdn?: string|null
+ * }} [sign] Signing parameters and optional custom hashing hook.
+ * @property {Record<string, UldaExternalHasherConfig>} [externalHashers] Pre-registered external hashers keyed by algorithm name.
+ */
+
+/**
+ * Public ULDA signing helper used by the repository packages and demo applications.
+ *
+ * The class manages origin package creation, forward state progression, signature generation,
+ * and signature verification for the supported ULDA modes currently implemented in this workspace.
+ *
+ * @example
+ * const signer = new UldaSign({
+ *   fmt: { export: "hex" },
+ *   sign: { N: 5, mode: "S", hash: "SHA-256", originSize: 256 }
+ * });
+ * const origin = signer.New(0n);
+ * const nextOrigin = signer.stepUp(origin);
+ * const sigA = await signer.sign(origin);
+ * const sigB = await signer.sign(nextOrigin);
+ * const ok = await signer.verify(sigA, sigB);
+ *
+ * @example
+ * const bytesSigner = new UldaSign({
+ *   fmt: { export: "bytes" },
+ *   sign: { N: 5, mode: "X", hash: "SHA-256", originSize: 256 }
+ * });
+ * const originBytes = bytesSigner.New();
+ * console.log(originBytes instanceof Uint8Array);
+ */
 class UldaSign {
+    /**
+     * @param {UldaSignConfig} [cfg={}] Runtime ULDA configuration.
+     */
     constructor(cfg = {}) {
         const g = (this.globalConfig = {
             version: cfg.version ?? "1",
@@ -278,26 +336,66 @@ class UldaSign {
         };
     }
 
+    /**
+     * Loads a browser script once when a custom external hasher must be bootstrapped from a CDN.
+     *
+     * @param {string} src Script URL to inject into `document.head`.
+     * @returns {Promise<void>} Resolves when the script is available.
+     */
     static loadScriptOnce(src) {
         return new Promise((res, rej) => {
             if (document.querySelector(`script[src="${src}"]`)) return res();
             const s = document.createElement("script");
             s.src = src;
-            s.onload = res;
-            s.onerror = rej;
+            s.onload = () => res();
+            s.onerror = err => rej(err);
             document.head.appendChild(s);
         });
     }
 
+    /**
+     * Creates a new origin package with random blocks and the requested starting index.
+     *
+     * @param {bigint|number} [i=0n] Initial logical index encoded into the package header.
+     * @returns {string|Uint8Array} Serialized origin package in the configured export format.
+     */
     New(i = 0n) {
-        return this.actions.NewExporter(this.actions.OriginGenerator(), i);
+        return this.actions.NewExporter(this.actions.OriginGenerator(), typeof i === "bigint" ? i : BigInt(i));
     }
+
+    /**
+     * Advances an origin package by one ULDA step.
+     *
+     * The oldest block is discarded, a new random block is appended, and the encoded index is incremented.
+     *
+     * @param {string|Uint8Array} pkg Serialized origin package produced by {@link UldaSign#New} or a previous step.
+     * @returns {string|Uint8Array} Next origin package in the configured export format.
+     */
     stepUp(pkg) {
         return this.actions.StepUp(pkg);
     }
+
+    /**
+     * Builds a signature package for a serialized origin package.
+     *
+     * @param {string|Uint8Array} pkg Serialized origin package.
+     * @returns {Promise<string|Uint8Array>} Serialized signature in the configured export format.
+     * @throws {string} Throws when imported package sizes or hasher configuration are invalid.
+     */
     sign(pkg) {
         return this.actions.Sign(pkg);
     }
+
+    /**
+     * Verifies whether two signatures represent a valid forward ULDA transition.
+     *
+     * For `S` mode the implementation accepts forward gaps smaller than `N`.
+     * For `X` mode only adjacent forward transitions are accepted.
+     *
+     * @param {string|Uint8Array} a Older or newer signature package.
+     * @param {string|Uint8Array} b Older or newer signature package.
+     * @returns {Promise<boolean>} `true` when the pair represents a valid forward relation.
+     */
     verify(a, b) {
         return this.actions.Verify(a, b);
     }
