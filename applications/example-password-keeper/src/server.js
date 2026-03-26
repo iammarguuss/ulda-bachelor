@@ -9,6 +9,36 @@ import { promisify } from "node:util";
 import mysql from "mysql2/promise";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
+/**
+ * @typedef {Object} KeeperRecordPayload
+ * @property {number|string} [id] Record identifier for read, update, and delete operations.
+ * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
+ * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
+ * @property {string|Uint8Array|number[]} [content] Binary content payload in the selected encoding.
+ * @property {"hex"|"base64"|"bytes"} [format] Encoding used for `ulda_key`.
+ * @property {"hex"|"base64"|"bytes"} [contentFormat] Encoding used for `content`.
+ */
+
+/**
+ * @typedef {Object} KeeperHandlerResult
+ * @property {number} [id]
+ * @property {boolean} [verified]
+ * @property {boolean} [deleted]
+ * @property {number} [status]
+ * @property {string} [error]
+ * @property {string|number[]|Uint8Array} [ulda_key]
+ * @property {string|number[]|Uint8Array} [content]
+ * @property {string} [format]
+ * @property {string} [contentFormat]
+ */
+
+/**
+ * Demo password-keeper server built on ULDA verification primitives.
+ *
+ * Although this application presents a password-keeper style UI, in the repository it serves as a demonstration
+ * client/server integration layer for ULDA-based state progression and encrypted content handling.
+ */
+
 const exec = promisify(execCb);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -262,6 +292,13 @@ const uldaVerifier = new UldaSign({
   sign: { originSize: normalizeOriginSize(CONFIG.originSize, 256) }
 });
 
+/**
+ * Creates a new ULDA-backed record.
+ *
+ * @param {KeeperRecordPayload} payload Incoming create payload.
+ * @param {{ step: Function, error: Function }|null} [trace] Optional request trace logger.
+ * @returns {Promise<KeeperHandlerResult>} Created record result.
+ */
 async function handleCreate(payload, trace) {
   trace?.step("parse payload");
   const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
@@ -275,6 +312,13 @@ async function handleCreate(payload, trace) {
   return { id: result.insertId };
 }
 
+/**
+ * Reads a stored ULDA-backed record and encodes it for the requested transport format.
+ *
+ * @param {KeeperRecordPayload} payload Read payload.
+ * @param {{ step: Function, error: Function }|null} [trace] Optional request trace logger.
+ * @returns {Promise<KeeperHandlerResult>} Read response or `{ status, error }`.
+ */
 async function handleRead(payload, trace) {
   const id = normalizeId(payload.id);
   const format = payload.format ?? "base64";
@@ -292,6 +336,13 @@ async function handleRead(payload, trace) {
   };
 }
 
+/**
+ * Updates an existing record after ULDA forward-verification succeeds.
+ *
+ * @param {KeeperRecordPayload} payload Update payload.
+ * @param {{ step: Function, error: Function }|null} [trace] Optional request trace logger.
+ * @returns {Promise<KeeperHandlerResult>} Update result or `{ status, error }`.
+ */
 async function handleUpdate(payload, trace) {
   const id = normalizeId(payload.id);
   trace?.step("parse payload", `id=${id}`);
@@ -314,6 +365,13 @@ async function handleUpdate(payload, trace) {
   return { verified: true };
 }
 
+/**
+ * Deletes an existing record after ULDA forward-verification succeeds.
+ *
+ * @param {KeeperRecordPayload} payload Delete payload.
+ * @param {{ step: Function, error: Function }|null} [trace] Optional request trace logger.
+ * @returns {Promise<KeeperHandlerResult>} Delete result or `{ status, error }`.
+ */
 async function handleDelete(payload, trace) {
   const id = normalizeId(payload.id);
   trace?.step("parse payload", `id=${id}`);
@@ -330,6 +388,18 @@ async function handleDelete(payload, trace) {
   return { deleted: true };
 }
 
+/**
+ * Creates the HTTP and Socket.IO server used by the example password-keeper demo.
+ *
+ * @param {{ port?: number }} [options] Runtime port override.
+ * @returns {{
+ *   app: any,
+ *   httpServer: import("node:http").Server,
+ *   io: SocketIOServer,
+ *   start: () => Promise<{ port: number }>,
+ *   stop: () => Promise<void>
+ * }} Server handles.
+ */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();
   app.use(express.json({ limit: CONFIG.jsonLimit }));

@@ -9,6 +9,43 @@ import { promisify } from "node:util";
 import mysql from "mysql2/promise";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
+/**
+ * @typedef {Object} CrudRecordPayload
+ * @property {number|string} [id] Record identifier for read, update, and delete operations.
+ * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
+ * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
+ * @property {string|Uint8Array|number[]} [content] Binary content payload in the selected encoding.
+ * @property {"hex"|"base64"|"bytes"} [format] Encoding used for `ulda_key`.
+ * @property {"hex"|"base64"|"bytes"} [contentFormat] Encoding used for `content`.
+ */
+
+/**
+ * @typedef {Object} CrudHandlerResult
+ * @property {number} [id] Created record id.
+ * @property {boolean} [verified] Whether an update/delete signature was accepted.
+ * @property {boolean} [deleted] Whether a record was deleted.
+ * @property {number} [status] Error-like status code used by higher HTTP/socket wrappers.
+ * @property {string} [error] Error message returned to the caller.
+ * @property {string|number[]|Uint8Array} [ulda_key] Encoded ULDA key for read responses.
+ * @property {string|number[]|Uint8Array} [content] Encoded content for read responses.
+ * @property {string} [format] Encoding used in the response for `ulda_key`.
+ * @property {string} [contentFormat] Encoding used in the response for `content`.
+ */
+
+/**
+ * @typedef {Object} TraceLogger
+ * @property {(message: string, extra?: string) => void} step Emits a progress message.
+ * @property {(error: unknown) => void} error Emits an error message.
+ * @property {(status: number) => void} done Emits a final completion marker.
+ */
+
+/**
+ * ULDA CRUD demo server.
+ *
+ * This module exposes a small HTTP and Socket.IO server that stores the latest ULDA key per record
+ * and only accepts update/delete requests when the new key cryptographically extends the previous one.
+ */
+
 const exec = promisify(execCb);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -231,6 +268,13 @@ const uldaVerifier = new UldaSign({
   sign: { originSize: normalizeOriginSize(CONFIG.originSize, 256) }
 });
 
+/**
+ * Creates a record after decoding the incoming ULDA key and content payload.
+ *
+ * @param {CrudRecordPayload} payload Incoming create payload.
+ * @param {TraceLogger|null} [trace] Optional request trace logger.
+ * @returns {Promise<CrudHandlerResult>} Created record id.
+ */
 async function handleCreate(payload, trace) {
   trace?.step("parse payload");
   const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
@@ -244,6 +288,13 @@ async function handleCreate(payload, trace) {
   return { id: result.insertId };
 }
 
+/**
+ * Reads a record and encodes it into the requested response formats.
+ *
+ * @param {CrudRecordPayload} payload Read payload containing id and optional output formats.
+ * @param {TraceLogger|null} [trace] Optional request trace logger.
+ * @returns {Promise<CrudHandlerResult>} Encoded record response or `{ status, error }`.
+ */
 async function handleRead(payload, trace) {
   const id = normalizeId(payload.id);
   const format = payload.format ?? "base64";
@@ -266,6 +317,13 @@ async function handleRead(payload, trace) {
   };
 }
 
+/**
+ * Updates a record only when the supplied ULDA key verifies against the stored key.
+ *
+ * @param {CrudRecordPayload} payload Update payload with record id, key, and content.
+ * @param {TraceLogger|null} [trace] Optional request trace logger.
+ * @returns {Promise<CrudHandlerResult>} Verification result or `{ status, error }`.
+ */
 async function handleUpdate(payload, trace) {
   const id = normalizeId(payload.id);
   trace?.step("parse payload", `id=${id}`);
@@ -292,6 +350,13 @@ async function handleUpdate(payload, trace) {
   return { verified: true };
 }
 
+/**
+ * Deletes a record only when the supplied ULDA key verifies as a valid forward transition.
+ *
+ * @param {CrudRecordPayload} payload Delete payload with record id and ULDA key.
+ * @param {TraceLogger|null} [trace] Optional request trace logger.
+ * @returns {Promise<CrudHandlerResult>} Delete result or `{ status, error }`.
+ */
 async function handleDelete(payload, trace) {
   const id = normalizeId(payload.id);
   trace?.step("parse payload", `id=${id}`);
@@ -313,6 +378,25 @@ async function handleDelete(payload, trace) {
   return { deleted: true };
 }
 
+/**
+ * Creates the HTTP and Socket.IO server pair used by the ULDA CRUD demo application.
+ *
+ * The returned object exposes the Express app, the underlying HTTP server, the Socket.IO server,
+ * and start/stop helpers used by runtime bootstrap or tests.
+ *
+ * @param {{ port?: number }} [options] Runtime port override.
+ * @returns {{
+ *   app: any,
+ *   httpServer: import("node:http").Server,
+ *   io: SocketIOServer,
+ *   start: () => Promise<{ port: number }>,
+ *   stop: () => Promise<void>
+ * }} Server handles.
+ *
+ * @example
+ * const { start } = createServer({ port: 8787 });
+ * await start();
+ */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();
   app.use(express.json({ limit: "2mb" }));

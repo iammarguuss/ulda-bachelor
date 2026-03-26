@@ -5,6 +5,22 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { webcrypto } from "node:crypto";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
+/**
+ * @typedef {Object} SpeedTestPayload
+ * @property {number|string} [id] Record identifier for read, update, and delete operations.
+ * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
+ * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
+ * @property {string|Uint8Array|number[]} [content] Binary content payload in the selected encoding.
+ * @property {"hex"|"base64"|"bytes"} [format] Encoding used for `ulda_key`.
+ * @property {"hex"|"base64"|"bytes"} [contentFormat] Encoding used for `content`.
+ */
+
+/**
+ * In-memory ULDA speed-test server used for HTTP stress experiments.
+ *
+ * This server intentionally trades persistence for startup speed by storing records in memory only.
+ */
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const browserTestDir = path.join(rootDir, "browser-test");
@@ -94,6 +110,12 @@ const uldaVerifier = new UldaSign({
   sign: { originSize: normalizeOriginSize(CONFIG.originSize, 256) }
 });
 
+/**
+ * Creates an in-memory record for benchmark and stress-test scenarios.
+ *
+ * @param {SpeedTestPayload} payload Incoming create payload.
+ * @returns {Promise<{ id: number }>} Created record id.
+ */
 async function handleCreate(payload) {
   const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
   const content = parseBytes(payload.content, payload.contentFormat ?? "base64", "content");
@@ -107,6 +129,12 @@ async function handleCreate(payload) {
   return { id };
 }
 
+/**
+ * Reads an in-memory record and encodes the response in the requested formats.
+ *
+ * @param {SpeedTestPayload} payload Read payload.
+ * @returns {Promise<object>} Read response or `{ status, error }`.
+ */
 async function handleRead(payload) {
   const id = normalizeId(payload.id);
   const row = store.get(id);
@@ -122,6 +150,12 @@ async function handleRead(payload) {
   };
 }
 
+/**
+ * Updates an in-memory record after ULDA forward-verification succeeds.
+ *
+ * @param {SpeedTestPayload} payload Update payload.
+ * @returns {Promise<object>} Update result or `{ status, error }`.
+ */
 async function handleUpdate(payload) {
   const id = normalizeId(payload.id);
   const row = store.get(id);
@@ -139,6 +173,12 @@ async function handleUpdate(payload) {
   return { verified: true };
 }
 
+/**
+ * Deletes an in-memory record after ULDA forward-verification succeeds.
+ *
+ * @param {SpeedTestPayload} payload Delete payload.
+ * @returns {Promise<object>} Delete result or `{ status, error }`.
+ */
 async function handleDelete(payload) {
   const id = normalizeId(payload.id);
   const row = store.get(id);
@@ -152,6 +192,17 @@ async function handleDelete(payload) {
   return { deleted: true };
 }
 
+/**
+ * Creates the HTTP server used by the in-memory speed-test application.
+ *
+ * @param {{ port?: number }} [options] Runtime port override.
+ * @returns {{
+ *   app: any,
+ *   httpServer: import("node:http").Server,
+ *   start: () => Promise<{ port: number }>,
+ *   stop: () => Promise<void>
+ * }} Server handles.
+ */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();
   app.use(express.json({ limit: "2mb" }));
