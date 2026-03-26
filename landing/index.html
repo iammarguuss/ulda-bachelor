@@ -60,7 +60,9 @@
       </div>
       <nav class="site-nav" aria-label="Primary">
         <a href="#overview">Overview</a>
+        <a href="#research">Research</a>
         <a href="#structure">Structure</a>
+        <a href="#resources">Resources</a>
         <a href="#contacts">Contact</a>
       </nav>
     </header>
@@ -69,10 +71,22 @@
       <section class="hero" id="overview" aria-labelledby="hero-title">
         <div class="hero__content">
           <p class="eyebrow">Research topic</p>
+          <p class="hero__title-ua">
+            Інформаційна система безстанової аутентифікації для вебсервісів з мінімальним розкриттям метаданих.
+            Інформаційне та програмне забезпечення криптографічної перевірки суб'єкта на основі протоколів ULDA.
+          </p>
           <h1 id="hero-title">Information system of stateless authentication for web services with minimal metadata disclosure</h1>
           <p class="hero__lead">
-            Landing page for the ULDA bachelor thesis workspace and public research repository.
+            Academic landing page for a ULDA bachelor thesis workspace focused on stateless authentication, minimal metadata disclosure,
+            and cryptographic subject verification for web services.
           </p>
+          <ul class="keyword-list" aria-label="Keywords">
+            <li>ULDA</li>
+            <li>Stateless authentication</li>
+            <li>Metadata disclosure minimization</li>
+            <li>Cryptographic verification</li>
+            <li>Web services</li>
+          </ul>
         </div>
         <figure class="hero__visual">
           <img
@@ -84,27 +98,113 @@
         </figure>
       </section>
 
+      <section class="section section--split" id="research" aria-labelledby="research-title">
+        <div class="section__intro">
+          <h2 id="research-title">Research outline</h2>
+          <p>
+            The landing page presents the bachelor thesis as a research and prototype effort around ULDA-based state progression,
+            subject verification, and reduced metadata exposure in web-service interactions.
+          </p>
+        </div>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3>Research goal</h3>
+            <p>
+              To investigate and present an information system approach for stateless authentication in web services with minimal
+              metadata disclosure, supported by ULDA-based cryptographic subject verification.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Main tasks</h3>
+            <ol>
+              <li>Analyze the role of state progression and metadata exposure in web-service authentication.</li>
+              <li>Study how ULDA protocols can support cryptographic verification without conventional session storage.</li>
+              <li>Implement and organize prototype software components for signing, verification, and frontend integration.</li>
+              <li>Demonstrate the approach through supporting applications and experimental repository artifacts.</li>
+              <li>Document limitations, prototype status, and further directions for refinement.</li>
+            </ol>
+          </article>
+          <article class="info-card">
+            <h3>Relevance</h3>
+            <p>
+              The topic is relevant for privacy-aware web systems that need stronger verification mechanisms while reducing
+              unnecessary metadata disclosure and avoiding overreliance on traditional stateful session models.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Methodology / approach</h3>
+            <p>
+              The work combines protocol-oriented analysis, prototype-oriented software implementation, and repository-based
+              experimentation with ULDA signing, verification, frontend integration, and supporting demo services.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Expected results</h3>
+            <p>
+              Expected outputs include a documented public repository, prototype components centered on ULDA workflows,
+              and a demonstrable basis for discussing stateless verification with reduced metadata exposure.
+            </p>
+          </article>
+        </div>
+      </section>
+
       <section class="section" id="structure" aria-labelledby="structure-title">
-        <h2 id="structure-title">Landing structure</h2>
+        <h2 id="structure-title">Repository structure</h2>
         <div class="card-grid">
           <article class="card">
-            <h3>Project overview</h3>
-            <p>Short bilingual thesis presentation and repository context.</p>
+            <h3><code>packages/ulda-sign</code></h3>
+            <p>Core ULDA signing and verification logic most directly related to the bachelor thesis topic.</p>
           </article>
           <article class="card">
-            <h3>Research content</h3>
-            <p>Goals, tasks, methodology, expected results, and relevance.</p>
+            <h3><code>packages/ulda-front</code></h3>
+            <p>Frontend integration layer for working with ULDA-backed encrypted records and transport adapters.</p>
           </article>
           <article class="card">
-            <h3>Access information</h3>
-            <p>Repository link, thesis text placeholder, and contact section.</p>
+            <h3><code>applications/example-password-keeper</code></h3>
+            <p>Demonstration application that showcases a user-facing ULDA integration, not the identity of the whole repository.</p>
+          </article>
+          <article class="card">
+            <h3><code>applications/ulda-crud</code></h3>
+            <p>Supporting MySQL-backed demo server for experiments with ULDA state verification and CRUD-style operations.</p>
+          </article>
+          <article class="card">
+            <h3><code>applications/max_speed_test_server</code></h3>
+            <p>Supporting in-memory server used for performance-oriented experiments and verification workflow testing.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="resources" aria-labelledby="resources-title">
+        <h2 id="resources-title">Repository and thesis resources</h2>
+        <div class="resource-list">
+          <article class="resource-item">
+            <h3>Public repository</h3>
+            <p>
+              <a href="https://github.com/iammarguuss/ulda-bachelor">github.com/iammarguuss/ulda-bachelor</a>
+            </p>
+          </article>
+          <article class="resource-item" id="full-text-placeholder">
+            <h3>Full thesis text</h3>
+            <p>
+              <a href="#full-text-placeholder">Placeholder: the full text of the bachelor thesis will be linked here when available.</a>
+            </p>
+          </article>
+          <article class="resource-item">
+            <h3>Short note</h3>
+            <p>
+              This repository is an experimental academic workspace and prototype environment rather than a production-ready system.
+            </p>
           </article>
         </div>
       </section>
 
       <section class="section" id="contacts" aria-labelledby="contacts-title">
         <h2 id="contacts-title">Contact</h2>
-        <p>Detailed contact information will be added in the content stage.</p>
+        <div class="contact-panel">
+          <p><strong>Repository maintainer:</strong> <a href="https://github.com/iammarguuss">@iammarguuss</a></p>
+          <p><strong>Email:</strong> <a href="mailto:mark@shaposhnik.ch">mark@shaposhnik.ch</a></p>
+          <p><strong>Format:</strong> public GitHub repository for software maintenance coursework and bachelor-thesis presentation.</p>
+        </div>
       </section>
     </main>
   </body>
