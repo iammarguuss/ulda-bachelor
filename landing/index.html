@@ -3,9 +3,44 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ULDA Bachelor Thesis Landing</title>
+    <title>ULDA Bachelor Thesis | Stateless Authentication Research Landing</title>
+    <meta
+      name="description"
+      content="Academic landing page for the ULDA bachelor thesis on stateless authentication, minimal metadata disclosure, and cryptographic subject verification."
+    >
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://iammarguuss.github.io/ulda-bachelor/landing/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:title" content="ULDA Bachelor Thesis Landing">
+    <meta
+      property="og:description"
+      content="One-page academic landing site for the ULDA bachelor thesis workspace and public research repository."
+    >
+    <meta property="og:url" content="https://iammarguuss.github.io/ulda-bachelor/landing/">
+    <meta property="og:image" content="https://iammarguuss.github.io/ulda-bachelor/landing/assets/ulda-workflow.svg">
+    <meta property="og:image:alt" content="Illustration of ULDA stateless verification workflow">
     <link rel="stylesheet" href="styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "ULDA Bachelor Thesis Landing",
+        "description": "Academic landing page for the ULDA bachelor thesis on stateless authentication and minimal metadata disclosure.",
+        "url": "https://iammarguuss.github.io/ulda-bachelor/landing/",
+        "inLanguage": ["uk", "en"],
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "ULDA Bachelor Research Workspace",
+          "url": "https://github.com/iammarguuss/ulda-bachelor"
+        },
+        "about": {
+          "@type": "CreativeWork",
+          "name": "Information system of stateless authentication for web services with minimal metadata disclosure"
+        }
+      }
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -31,10 +66,10 @@
     </header>
 
     <main id="main-content">
-      <section class="hero" id="overview">
+      <section class="hero" id="overview" aria-labelledby="hero-title">
         <div class="hero__content">
           <p class="eyebrow">Research topic</p>
-          <h1>Information system of stateless authentication for web services with minimal metadata disclosure</h1>
+          <h1 id="hero-title">Information system of stateless authentication for web services with minimal metadata disclosure</h1>
           <p class="hero__lead">
             Landing page for the ULDA bachelor thesis workspace and public research repository.
           </p>
@@ -49,8 +84,8 @@
         </figure>
       </section>
 
-      <section class="section" id="structure">
-        <h2>Landing structure</h2>
+      <section class="section" id="structure" aria-labelledby="structure-title">
+        <h2 id="structure-title">Landing structure</h2>
         <div class="card-grid">
           <article class="card">
             <h3>Project overview</h3>
@@ -67,8 +102,8 @@
         </div>
       </section>
 
-      <section class="section" id="contacts">
-        <h2>Contact</h2>
+      <section class="section" id="contacts" aria-labelledby="contacts-title">
+        <h2 id="contacts-title">Contact</h2>
         <p>Detailed contact information will be added in the content stage.</p>
       </section>
     </main>
