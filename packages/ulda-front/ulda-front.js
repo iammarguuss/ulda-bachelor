@@ -1,7 +1,7 @@
 import UldaSign from "../ulda-sign/ulda-sign.js";
 
 /**
- * @typedef {Object} UldaFrontOptions
+ * @typedef {object} UldaFrontOptions
  * @property {boolean} [autosave] Automatically flushes pending mutations after proxy changes.
  * @property {number} [autosaveDebounceMs] Delay in milliseconds before an autosave flush is scheduled.
  * @property {boolean} [allowInsecureLocalhost] Allows `http://localhost` and `ws://localhost` style demo connections.
@@ -10,14 +10,14 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} UldaRecordEnvelope
+ * @typedef {object} UldaRecordEnvelope
  * @property {string|number} id Record identifier returned by the backend adapter.
  * @property {string} content Serialized encrypted envelope.
  * @property {string} [ulda_key] Serialized ULDA signature or state key.
  */
 
 /**
- * @typedef {Object} UldaAdapter
+ * @typedef {object} UldaAdapter
  * @property {Function} createMasterRecord
  * @property {Function} readRecord
  * @property {Function} createContentRecord
@@ -32,7 +32,7 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} UldaMutationSummary
+ * @typedef {object} UldaMutationSummary
  * @property {boolean} ok Operation status.
  * @property {boolean} [skipped] Indicates that there was nothing to flush.
  * @property {number} [created] Number of created logical content records.
@@ -41,51 +41,51 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} HttpJsonRequest
+ * @typedef {object} HttpJsonRequest
  * @property {string} method HTTP method.
  * @property {string} url Absolute request URL.
  * @property {*} [body] Optional JSON payload.
  */
 
 /**
- * @typedef {Object} RestAdapterOptions
+ * @typedef {object} RestAdapterOptions
  * @property {Function} [fetchImpl] Fetch implementation used for HTTP requests.
- * @property {Object|null} [signConfig] Optional fixed ULDA sign config.
+ * @property {object | null} [signConfig] Optional fixed ULDA sign config.
  * @property {string|null} [configBaseUrl] Optional base URL used to resolve `/config`.
  * @property {number} [kdfIterations] PBKDF2 iteration count.
  */
 
 /**
- * @typedef {Object} SocketAdapterOptions
+ * @typedef {object} SocketAdapterOptions
  * @property {{ emit: Function }} [socket] Socket.IO-like transport object.
  * @property {Function} [fetchImpl] Fetch implementation used for loading `/config` when needed.
- * @property {Object|null} [signConfig] Optional fixed ULDA sign config.
+ * @property {object | null} [signConfig] Optional fixed ULDA sign config.
  * @property {string|null} [configBaseUrl] Optional base URL used to resolve `/config`.
  * @property {number} [kdfIterations] PBKDF2 iteration count.
  * @property {number} [timeoutMs] RPC timeout in milliseconds.
  */
 
 /**
- * @typedef {Object} UldaFrontConfig
+ * @typedef {object} UldaFrontConfig
  * @property {UldaAdapter|null} [adapter] Adapter with transport and cryptographic methods.
  * @property {UldaFrontOptions} [options] Runtime options.
  */
 
 /**
- * @typedef {Object} UldaConnectParams
+ * @typedef {object} UldaConnectParams
  * @property {number|string|null} [id] Master record id.
  * @property {string|Uint8Array|null} [password] Password or password bytes.
  * @property {string|null} [serverConnection] Server URL used by the adapter.
  */
 
 /**
- * @typedef {Object} UldaCreateParams
+ * @typedef {object} UldaCreateParams
  * @property {string|Uint8Array|null} [password] Password or password bytes.
  * @property {string|null} [serverConnection] Server URL used by the adapter.
  */
 
 /**
- * @typedef {Object} UldaDeleteResult
+ * @typedef {object} UldaDeleteResult
  * @property {boolean} ok Operation status.
  * @property {boolean} [scheduled] Indicates deferred autosave deletion.
  * @property {string} [reason] Optional reason code.

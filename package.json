@@ -20,6 +20,7 @@
     "@eslint/js": "^9.22.0",
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
+    "eslint-plugin-jsdoc": "^62.8.1",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "jsdoc": "^4.0.4",

@@ -6,7 +6,7 @@ import { webcrypto } from "node:crypto";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
 /**
- * @typedef {Object} SpeedTestPayload
+ * @typedef {object} SpeedTestPayload
  * @property {number|string} [id] Record identifier for read, update, and delete operations.
  * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
  * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
@@ -195,9 +195,9 @@ async function handleDelete(payload) {
 /**
  * Creates the HTTP server used by the in-memory speed-test application.
  *
- * @param {Object} [options] Runtime port override.
+ * @param {object} [options] Runtime port override.
  * @param {number} [options.port]
- * @returns {Object} Server handles.
+ * @returns {object} Server handles.
  */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();

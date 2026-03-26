@@ -10,7 +10,7 @@ import mysql from "mysql2/promise";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
 /**
- * @typedef {Object} KeeperRecordPayload
+ * @typedef {object} KeeperRecordPayload
  * @property {number|string} [id] Record identifier for read, update, and delete operations.
  * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
  * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
@@ -20,7 +20,7 @@ import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} KeeperHandlerResult
+ * @typedef {object} KeeperHandlerResult
  * @property {number} [id]
  * @property {boolean} [verified]
  * @property {boolean} [deleted]
@@ -173,7 +173,7 @@ function createTrace(label, startNs = process.hrtime.bigint()) {
 }
 
 /**
- * @param {Object} [options]
+ * @param {object} [options]
  * @param {string} [options.database]
  */
 async function connectOnce({ database } = {}) {
@@ -392,9 +392,9 @@ async function handleDelete(payload, trace) {
 /**
  * Creates the HTTP and Socket.IO server used by the example password-keeper demo.
  *
- * @param {Object} [options] Runtime port override.
+ * @param {object} [options] Runtime port override.
  * @param {number} [options.port]
- * @returns {Object} Server handles.
+ * @returns {object} Server handles.
  */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();

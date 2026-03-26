@@ -3,7 +3,7 @@
  */
 
 /**
- * @typedef {Object} UldaExternalHasherConfig
+ * @typedef {object} UldaExternalHasherConfig
  * @property {Function} fn External hashing implementation.
  * @property {"bytes"|"hex"|"base64"} [output="bytes"] Output format produced by the hasher.
  * @property {number|null} [size=null] Expected output size in bits when the hash size is fixed.
@@ -12,11 +12,11 @@
  */
 
 /**
- * @typedef {Object} UldaSignConfig
+ * @typedef {object} UldaSignConfig
  * @property {string} [version="1"] Version marker kept in the internal global config.
- * @property {Object} [fmt] Output serialization format for exported origin and signature packages.
+ * @property {object} [fmt] Output serialization format for exported origin and signature packages.
  * @property {UldaExportFormat} [fmt.export] Export format for generated packages.
- * @property {Object} [sign] Signing parameters and optional custom hashing hook.
+ * @property {object} [sign] Signing parameters and optional custom hashing hook.
  * @property {number} [sign.N] Number of blocks in the ULDA package.
  * @property {"S"|"X"} [sign.mode] ULDA mode used for verification.
  * @property {string} [sign.hash] Hash algorithm name.

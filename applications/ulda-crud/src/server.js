@@ -10,7 +10,7 @@ import mysql from "mysql2/promise";
 import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
 /**
- * @typedef {Object} CrudRecordPayload
+ * @typedef {object} CrudRecordPayload
  * @property {number|string} [id] Record identifier for read, update, and delete operations.
  * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
  * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
@@ -20,7 +20,7 @@ import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} CrudHandlerResult
+ * @typedef {object} CrudHandlerResult
  * @property {number} [id] Created record id.
  * @property {boolean} [verified] Whether an update/delete signature was accepted.
  * @property {boolean} [deleted] Whether a record was deleted.
@@ -33,14 +33,14 @@ import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
  */
 
 /**
- * @typedef {Object} TraceLogger
+ * @typedef {object} TraceLogger
  * @property {Function} step Emits a progress message.
  * @property {Function} error Emits an error message.
  * @property {Function} done Emits a final completion marker.
  */
 
 /**
- * @typedef {Object} CrudServer
+ * @typedef {object} CrudServer
  * @property {*} app Express application instance.
  * @property {*} httpServer HTTP server instance.
  * @property {*} io Socket.IO server instance.
@@ -183,7 +183,7 @@ function durationMs(startNs) {
 }
 
 /**
- * @param {Object} [options]
+ * @param {object} [options]
  * @param {string} [options.database]
  */
 async function connectOnce({ database } = {}) {
@@ -394,7 +394,7 @@ async function handleDelete(payload, trace) {
  * The returned object exposes the Express app, the underlying HTTP server, the Socket.IO server,
  * and start/stop helpers used by runtime bootstrap or tests.
  *
- * @param {Object} [options] Runtime port override.
+ * @param {object} [options] Runtime port override.
  * @param {number} [options.port]
  * @returns {CrudServer} Server handles.
  *
