@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: algorithms</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: algorithms</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>algorithms</h2>
+</header>
+
+<article>
+    <h1>Algorithms and Non-Obvious Flows</h1>
+<h2>ULDA state progression in <code>packages/ulda-sign</code></h2>
+<p>The implementation stores ULDA state as an encoded package containing:</p>
+<ul>
+<li>header information</li>
+<li>current index</li>
+<li>block sequence</li>
+</ul>
+<p>The two most important public operations are:</p>
+<ol>
+<li><code>New(index)</code> creates a fresh origin package with random blocks.</li>
+<li><code>stepUp(pkg)</code> removes the oldest block, appends a new random block, and increments the package index.</li>
+</ol>
+<p>This means the package evolves forward over time instead of being reused unchanged.</p>
+<h2>Signing flow</h2>
+<p><code>sign(pkg)</code> performs these high-level steps:</p>
+<ol>
+<li>import the serialized origin package</li>
+<li>derive the block list and metadata</li>
+<li>compute the signature ladder according to the configured mode</li>
+<li>pack the resulting signature bytes back into the configured export format</li>
+</ol>
+<p>The code currently supports:</p>
+<ul>
+<li><code>S</code> mode</li>
+<li><code>X</code> mode</li>
+</ul>
+<h2>Verification flow</h2>
+<p><code>verify(a, b)</code> imports both signatures, checks shared metadata compatibility, and then dispatches to:</p>
+<ul>
+<li><code>VerifyS</code></li>
+<li><code>VerifyX</code></li>
+</ul>
+<h3><code>S</code> mode behavior</h3>
+<p>The implementation accepts a forward gap smaller than <code>N</code>.</p>
+<p>That is why tests include cases where:</p>
+<ul>
+<li>adjacent signatures verify successfully</li>
+<li>non-adjacent signatures may still verify when the gap is valid</li>
+</ul>
+<h3><code>X</code> mode behavior</h3>
+<p>The implementation requires a single forward step between the compared signatures.</p>
+<p>That is why tests check:</p>
+<ul>
+<li>adjacent transitions succeed</li>
+<li>non-adjacent transitions fail</li>
+</ul>
+<h2>Encrypted record flow in <code>packages/ulda-front</code></h2>
+<p><code>UldaFront</code> models data as:</p>
+<ul>
+<li>one master document</li>
+<li>many content documents</li>
+</ul>
+<p>The master document stores:</p>
+<ul>
+<li>current <code>originPkg</code></li>
+<li>links to content records</li>
+<li>a top-level projection of logical data</li>
+</ul>
+<p>Each content document stores:</p>
+<ul>
+<li>its own <code>originPkg</code></li>
+<li>logical data payload</li>
+</ul>
+<h2>Update flow in <code>UldaFront</code></h2>
+<p>When <code>update()</code> flushes pending changes, the code:</p>
+<ol>
+<li>creates missing content records</li>
+<li>updates changed content records</li>
+<li>deletes scheduled content records</li>
+<li>advances the master document state</li>
+<li>writes the updated encrypted master envelope</li>
+</ol>
+<p>The important non-obvious detail is that content and master records each maintain forward ULDA state independently.</p>
+<h2>Server-side verification flow</h2>
+<p>In the demo backends the essential rule is:</p>
+<ul>
+<li>update/delete is accepted only if the new ULDA key verifies against the stored key</li>
+</ul>
+<p>This is the repository’s practical demonstration of forward-only state authorization.</p>
+<p>The server does not attempt to reconstruct the client-side secret state. It only checks whether the presented next key is a valid cryptographic extension of the previous one.</p>
+<h2>Why tests count as living documentation</h2>
+<p>The following tests demonstrate algorithm behavior in executable form:</p>
+<ul>
+<li><code>packages/ulda-sign/tests/ulda-sign.test.mjs</code></li>
+<li><code>packages/ulda-front/tests/ulda-front.test.mjs</code></li>
+</ul>
+<p>They are especially useful for:</p>
+<ul>
+<li>adjacent vs non-adjacent verification</li>
+<li>stale-signature rejection</li>
+<li>adapter-backed create/connect/update/delete flows</li>
+</ul>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

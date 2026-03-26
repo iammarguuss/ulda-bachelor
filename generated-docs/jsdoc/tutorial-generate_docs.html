@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: generate_docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: generate_docs</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>generate_docs</h2>
+</header>
+
+<article>
+    <h1>Generating Documentation</h1>
+<h2>Purpose</h2>
+<p>This repository uses JSDoc-generated HTML as the main automatically built code documentation output for the public JavaScript interfaces.</p>
+<p>The primary documented surfaces are:</p>
+<ul>
+<li><code>packages/ulda-sign/ulda-sign.js</code></li>
+<li><code>packages/ulda-front/ulda-front.js</code></li>
+<li><code>applications/ulda-crud/src/server.js</code></li>
+<li><code>applications/example-password-keeper/src/server.js</code></li>
+<li><code>applications/max_speed_test_server/src/server.js</code></li>
+</ul>
+<h2>Prerequisites</h2>
+<ul>
+<li>Node.js <code>&gt;=18</code></li>
+<li>repository dependencies installed from the root</li>
+</ul>
+<h2>Exact commands</h2>
+<p>Install dependencies:</p>
+<pre class="prettyprint source lang-bash"><code>npm install
+</code></pre>
+<p>Run documentation quality checks already integrated into ESLint:</p>
+<pre class="prettyprint source lang-bash"><code>npm run lint
+npm run typecheck
+</code></pre>
+<p>Generate HTML documentation:</p>
+<pre class="prettyprint source lang-bash"><code>npm run docs:build
+</code></pre>
+<p>Clean generated HTML output only:</p>
+<pre class="prettyprint source lang-bash"><code>npm run docs:clean
+</code></pre>
+<h2>Output location</h2>
+<p>Generated HTML documentation is written to:</p>
+<pre class="prettyprint source lang-text"><code>generated-docs/jsdoc/
+</code></pre>
+<p>The main entry page is:</p>
+<pre class="prettyprint source lang-text"><code>generated-docs/jsdoc/index.html
+</code></pre>
+<h2>Living documentation</h2>
+<p>The generated docs are complemented by executable examples in:</p>
+<ul>
+<li><code>packages/ulda-sign/tests/ulda-sign.test.mjs</code></li>
+<li><code>packages/ulda-front/tests/ulda-front.test.mjs</code></li>
+</ul>
+<p>Those tests are useful when the generated HTML needs to be checked against actual current behavior.</p>
+<h2>Archive command</h2>
+<p>If an archive needs to be created manually from the generated HTML in the current Windows environment:</p>
+<pre class="prettyprint source lang-powershell"><code>New-Item -ItemType Directory -Force artifacts | Out-Null
+if (Test-Path artifacts/ulda-jsdoc.zip) { Remove-Item artifacts/ulda-jsdoc.zip -Force }
+Compress-Archive -Path generated-docs/jsdoc/* -DestinationPath artifacts/ulda-jsdoc.zip
+</code></pre>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

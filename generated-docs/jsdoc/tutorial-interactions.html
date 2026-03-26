@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: interactions</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: interactions</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>interactions</h2>
+</header>
+
+<article>
+    <h1>Component Interactions</h1>
+<h2>Main interaction chain</h2>
+<p>The core interaction path in this repository is:</p>
+<ol>
+<li><code>packages/ulda-sign</code></li>
+<li><code>packages/ulda-front</code></li>
+<li>application server or demo application</li>
+</ol>
+<p>In other words:</p>
+<ul>
+<li><code>ulda-sign</code> defines low-level state/signature behavior</li>
+<li><code>ulda-front</code> consumes that behavior to manage encrypted logical records</li>
+<li>demo servers/apps expose that flow over HTTP or Socket.IO</li>
+</ul>
+<h2><code>ulda-sign</code> -&gt; server interaction</h2>
+<p>The server modules create a <code>UldaSign</code> verifier instance and use it to validate that:</p>
+<ul>
+<li>the stored ULDA key</li>
+<li>and the incoming next ULDA key</li>
+</ul>
+<p>form a valid forward transition.</p>
+<p>This interaction is visible in:</p>
+<ul>
+<li><code>applications/ulda-crud/src/server.js</code></li>
+<li><code>applications/example-password-keeper/src/server.js</code></li>
+<li><code>applications/max_speed_test_server/src/server.js</code></li>
+</ul>
+<h2><code>ulda-sign</code> -&gt; <code>ulda-front</code> interaction</h2>
+<p><code>ulda-front</code> uses <code>UldaSign</code> indirectly through adapter-oriented helper flows:</p>
+<ul>
+<li><code>createInitialOrigin</code></li>
+<li><code>stepUpAndSign</code></li>
+</ul>
+<p>That means <code>ulda-front</code> does not re-implement the signing logic itself. Instead, it depends on ULDA package progression and signature creation provided by the lower-level layer.</p>
+<h2><code>ulda-front</code> -&gt; application interaction</h2>
+<p>Applications that use <code>UldaFront</code> work with:</p>
+<ul>
+<li>a logical proxy object <code>client.data</code></li>
+<li>adapter-based transport</li>
+<li>encrypted master/content envelopes</li>
+</ul>
+<p>The application layer mutates logical fields, while <code>UldaFront</code> decides how those changes map to:</p>
+<ul>
+<li>record creation</li>
+<li>record updates</li>
+<li>record deletion</li>
+<li>master document synchronization</li>
+</ul>
+<h2>REST interaction pattern</h2>
+<p>For REST-based flows:</p>
+<ul>
+<li>client adapter builds JSON requests</li>
+<li>server receives encoded <code>ulda_key</code> and <code>content</code></li>
+<li>server verifies the ULDA transition</li>
+<li>server stores the new key and content</li>
+</ul>
+<h2>Socket.IO interaction pattern</h2>
+<p>For Socket.IO-based flows:</p>
+<ul>
+<li>client adapter sends event/payload/callback requests</li>
+<li>server maps events such as <code>create</code>, <code>read</code>, <code>update</code>, <code>delete</code></li>
+<li>server responds with the same logical verification result shape used by the REST demo flow</li>
+</ul>
+<h2>Documentation interaction model</h2>
+<p>There are also interactions between documentation layers:</p>
+<ul>
+<li>source JSDoc documents public APIs</li>
+<li>markdown docs explain architecture and non-obvious flows</li>
+<li>generated HTML makes the code docs browsable</li>
+<li>tests serve as executable usage examples</li>
+</ul>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

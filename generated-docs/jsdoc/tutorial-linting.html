@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: linting</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: linting</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>linting</h2>
+</header>
+
+<article>
+    <h1>Linting and Static Analysis</h1>
+<h2>Tooling choice</h2>
+<p>This repository uses <strong>ESLint</strong> as the main linter for JavaScript and the <strong>TypeScript compiler</strong> in JavaScript checking mode for static analysis.</p>
+<p>This combination was selected because it is practical for the current codebase:</p>
+<ul>
+<li>the repository is already JavaScript-based;</li>
+<li>ESLint is the standard maintainable choice for JavaScript correctness and style checks;</li>
+<li>TypeScript can check existing <code>.js</code> files with <code>allowJs</code>, <code>checkJs</code>, and <code>noEmit</code> without forcing a full migration to <code>.ts</code>.</li>
+</ul>
+<h2>What matters most in this repository</h2>
+<p>The most important quality aspects for this ULDA workspace are:</p>
+<ul>
+<li>correctness in cryptographic and verification-related logic;</li>
+<li>avoiding accidental undefined variables and unused code paths;</li>
+<li>keeping server and browser-side modules readable and consistent;</li>
+<li>catching mistakes early before commits are created.</li>
+</ul>
+<h2>Linting scope and ignores</h2>
+<p>Linting is focused on the JavaScript codebase in:</p>
+<ul>
+<li><code>packages/**/*.js</code></li>
+<li><code>applications/**/*.js</code></li>
+</ul>
+<p>Type checking is intentionally narrower and focuses on the most stable maintainable surfaces:</p>
+<ul>
+<li><code>packages/**/*.js</code></li>
+<li><code>applications/*/src/**/*.js</code></li>
+<li><code>applications/*/scripts/**/*.js</code></li>
+</ul>
+<p>This keeps TypeScript checks practical for the repository while browser stress-test UI code remains covered by ESLint.</p>
+<p>Ignored paths are limited to directories that should not be linted as source code:</p>
+<ul>
+<li><code>**/node_modules/**</code></li>
+<li><code>**/dist/**</code></li>
+<li><code>**/build/**</code></li>
+<li><code>**/coverage/**</code></li>
+<li><code>assets/**</code></li>
+<li><code>landing/assets/**</code></li>
+</ul>
+<h2>Basic ESLint rules</h2>
+<p>The root ESLint configuration uses the modern flat config format and starts from the ESLint recommended ruleset.</p>
+<p>Additional repository rules enforce:</p>
+<ul>
+<li><code>eqeqeq</code>: require strict equality;</li>
+<li><code>no-unused-vars</code>: prevent dead bindings while allowing <code>_</code>-prefixed ignored parameters;</li>
+<li><code>no-var</code>: require <code>let</code> / <code>const</code>;</li>
+<li><code>no-empty</code>: disallow empty blocks except intentionally empty <code>catch</code> blocks used for best-effort demo behavior.</li>
+</ul>
+<h2>How to run checks</h2>
+<p>From the repository root:</p>
+<pre class="prettyprint source lang-bash"><code>npm install
+npm run lint
+npm run lint:fix
+npm run typecheck
+npm run check
+</code></pre>
+<h2>Static type checking</h2>
+<p>Static analysis is configured through the root <code>tsconfig.json</code> with:</p>
+<ul>
+<li><code>allowJs: true</code></li>
+<li><code>checkJs: true</code></li>
+<li><code>noEmit: true</code></li>
+</ul>
+<p>This means TypeScript analyzes JavaScript files for type-related problems but does not generate output files.</p>
+<h2>Git hooks</h2>
+<p>Pre-commit hooks are configured with <strong>Husky</strong>.</p>
+<p>The hook file <code>.husky/pre-commit</code> runs:</p>
+<pre class="prettyprint source lang-bash"><code>npm run check
+</code></pre>
+<p>This ensures linting and type checking run before a commit is finalized in a prepared local environment.</p>
+<h2>Workflow integration</h2>
+<p>Repository-level verification is exposed through the root script:</p>
+<pre class="prettyprint source lang-bash"><code>npm run check
+</code></pre>
+<p>This script combines:</p>
+<ol>
+<li>ESLint linting</li>
+<li>TypeScript JS-mode type checking</li>
+</ol>
+<p>That makes it suitable as the main local verification step before commits or before broader repository validation.</p>
+<h2>Fixed-issues percentage</h2>
+<p>The percentage of fixed issues is calculated from the configured baseline after the tooling setup was added:</p>
+<pre class="prettyprint source lang-text"><code>fixed percentage = (baseline issues - remaining issues) / baseline issues * 100
+</code></pre>
+<p>For lab reporting:</p>
+<ul>
+<li><strong>50% completion</strong> means at least half of the baseline actionable issues were removed;</li>
+<li><strong>90% completion</strong> means at least ninety percent of the baseline actionable issues were removed;</li>
+<li><strong>100% practical completion</strong> means the configured lint workflow passes cleanly, or only clearly documented intentional exceptions remain.</li>
+</ul>
+<p>The baseline and the final count should be measured using the same commands and the same repository scope.</p>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

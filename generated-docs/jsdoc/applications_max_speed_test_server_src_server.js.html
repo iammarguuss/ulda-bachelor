@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: applications/max_speed_test_server/src/server.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: applications/max_speed_test_server/src/server.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import express from "express";
+import http from "node:http";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { webcrypto } from "node:crypto";
+import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
+
+/**
+ * @typedef {object} SpeedTestPayload
+ * @property {number|string} [id] Record identifier for read, update, and delete operations.
+ * @property {string|Uint8Array|number[]} [ulda_key] ULDA signature/state key.
+ * @property {string|Uint8Array|number[]} [uldaKey] Alias for `ulda_key`.
+ * @property {string|Uint8Array|number[]} [content] Binary content payload in the selected encoding.
+ * @property {"hex"|"base64"|"bytes"} [format] Encoding used for `ulda_key`.
+ * @property {"hex"|"base64"|"bytes"} [contentFormat] Encoding used for `content`.
+ */
+
+/**
+ * In-memory ULDA speed-test server used for HTTP stress experiments.
+ *
+ * This server intentionally trades persistence for startup speed by storing records in memory only.
+ */
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, "..");
+const browserTestDir = path.join(rootDir, "browser-test");
+
+function ensureWebCrypto() {
+  if (!globalThis.crypto?.subtle || typeof globalThis.crypto.getRandomValues !== "function") {
+    globalThis.crypto = /** @type {any} */ (webcrypto);
+  }
+  if (typeof globalThis.btoa !== "function") {
+    globalThis.btoa = str => Buffer.from(str, "binary").toString("base64");
+  }
+  if (typeof globalThis.atob !== "function") {
+    globalThis.atob = b64 => Buffer.from(b64, "base64").toString("binary");
+  }
+}
+
+ensureWebCrypto();
+
+const CONFIG = {
+  port: Number(process.env.PORT ?? 8899),
+  originSize: Number(process.env.ORIGIN_SIZE ?? 256),
+  sign: {
+    N: Number(process.env.SIGN_N ?? 5),
+    mode: process.env.SIGN_MODE ?? "S",
+    hash: process.env.SIGN_HASH ?? "SHA-256"
+  },
+  contentBytes: Number(process.env.CONTENT_BYTES ?? 32)
+};
+
+function normalizeOriginSize(value, fallback = 256) {
+  if (value === null || typeof value === "undefined" || value === "") return fallback;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n &lt;= 0 || n % 8 !== 0) {
+    throw new Error("originSize must be a positive multiple of 8 (bits)");
+  }
+  return n;
+}
+
+function normalizeFormat(value, fallback = "hex") {
+  if (value === null || typeof value === "undefined" || value === "") return fallback;
+  const fmt = String(value).toLowerCase();
+  if (fmt === "hex" || fmt === "base64" || fmt === "bytes") return fmt;
+  throw new Error("format must be hex, base64, or bytes");
+}
+
+function normalizeId(value) {
+  const id = Number(value);
+  if (!Number.isFinite(id) || !Number.isInteger(id) || id &lt;= 0) {
+    throw new Error("id must be a positive integer");
+  }
+  return id;
+}
+
+function parseBytes(input, format, label) {
+  if (input instanceof Uint8Array) return Buffer.from(input);
+  if (Array.isArray(input)) return Buffer.from(input);
+  if (typeof input !== "string") {
+    throw new Error(`${label} must be a string or byte array`);
+  }
+  const trimmed = input.trim();
+  const fmt = normalizeFormat(format, "hex");
+  if (fmt === "bytes") {
+    throw new Error(`${label} with format=bytes must be an array`);
+  }
+  if (fmt === "hex") return Buffer.from(trimmed, "hex");
+  if (fmt === "base64") return Buffer.from(trimmed, "base64");
+  throw new Error(`Unsupported ${label} format`);
+}
+
+function encodeBytes(bytes, format) {
+  const fmt = normalizeFormat(format, "base64");
+  if (fmt === "hex") return Buffer.from(bytes).toString("hex");
+  if (fmt === "base64") return Buffer.from(bytes).toString("base64");
+  if (fmt === "bytes") return Array.from(Buffer.from(bytes));
+  return Buffer.from(bytes).toString("base64");
+}
+
+function durationMs(startNs) {
+  return Number(process.hrtime.bigint() - startNs) / 1e6;
+}
+
+const store = new Map();
+let nextId = 1;
+
+const uldaVerifier = new UldaSign({
+  fmt: { export: "bytes" },
+  sign: { originSize: normalizeOriginSize(CONFIG.originSize, 256) }
+});
+
+/**
+ * Creates an in-memory record for benchmark and stress-test scenarios.
+ *
+ * @param {SpeedTestPayload} payload Incoming create payload.
+ * @returns {Promise&lt;{ id: number }>} Created record id.
+ */
+async function handleCreate(payload) {
+  const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
+  const content = parseBytes(payload.content, payload.contentFormat ?? "base64", "content");
+  const id = nextId++;
+  store.set(id, {
+    id,
+    ulda_key: key,
+    content,
+    updatedAt: Date.now()
+  });
+  return { id };
+}
+
+/**
+ * Reads an in-memory record and encodes the response in the requested formats.
+ *
+ * @param {SpeedTestPayload} payload Read payload.
+ * @returns {Promise&lt;object>} Read response or `{ status, error }`.
+ */
+async function handleRead(payload) {
+  const id = normalizeId(payload.id);
+  const row = store.get(id);
+  if (!row) return { status: 404, error: "not found" };
+  const format = payload.format ?? "base64";
+  const contentFormat = payload.contentFormat ?? "base64";
+  return {
+    id: row.id,
+    ulda_key: encodeBytes(row.ulda_key, format),
+    content: encodeBytes(row.content, contentFormat),
+    format: normalizeFormat(format, "base64"),
+    contentFormat: normalizeFormat(contentFormat, "base64")
+  };
+}
+
+/**
+ * Updates an in-memory record after ULDA forward-verification succeeds.
+ *
+ * @param {SpeedTestPayload} payload Update payload.
+ * @returns {Promise&lt;object>} Update result or `{ status, error }`.
+ */
+async function handleUpdate(payload) {
+  const id = normalizeId(payload.id);
+  const row = store.get(id);
+  if (!row) return { status: 404, error: "not found" };
+
+  const newKey = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
+  const newContent = parseBytes(payload.content, payload.contentFormat ?? "base64", "content");
+
+  const verified = await uldaVerifier.verify(row.ulda_key, newKey);
+  if (!verified) return { status: 400, error: "signature verification failed" };
+
+  row.ulda_key = newKey;
+  row.content = newContent;
+  row.updatedAt = Date.now();
+  return { verified: true };
+}
+
+/**
+ * Deletes an in-memory record after ULDA forward-verification succeeds.
+ *
+ * @param {SpeedTestPayload} payload Delete payload.
+ * @returns {Promise&lt;object>} Delete result or `{ status, error }`.
+ */
+async function handleDelete(payload) {
+  const id = normalizeId(payload.id);
+  const row = store.get(id);
+  if (!row) return { status: 404, error: "not found" };
+
+  const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
+  const verified = await uldaVerifier.verify(row.ulda_key, key);
+  if (!verified) return { status: 400, error: "signature verification failed" };
+
+  store.delete(id);
+  return { deleted: true };
+}
+
+/**
+ * Creates the HTTP server used by the in-memory speed-test application.
+ *
+ * @param {object} [options] Runtime port override.
+ * @param {number} [options.port]
+ * @returns {object} Server handles.
+ */
+function createServer({ port = CONFIG.port } = {}) {
+  const app = express();
+  app.use(express.json({ limit: "2mb" }));
+
+  app.get("/", (req, res) => {
+    res.json({
+      name: "max_speed_test_server",
+      ok: true,
+      endpoints: ["/config", "/records", "/records/:id", "/health", "/stats", "/browser-test"]
+    });
+  });
+
+  app.get("/config", (req, res) => {
+    res.json({
+      originSize: normalizeOriginSize(CONFIG.originSize, 256),
+      sign: {
+        N: CONFIG.sign.N,
+        mode: CONFIG.sign.mode,
+        hash: CONFIG.sign.hash
+      },
+      contentBytes: CONFIG.contentBytes,
+      format: "base64",
+      contentFormat: "base64"
+    });
+  });
+
+  app.get("/health", (req, res) => {
+    res.json({ ok: true, time: new Date().toISOString() });
+  });
+
+  app.get("/stats", (req, res) => {
+    res.json({
+      ok: true,
+      recordsInMemory: store.size,
+      nextId
+    });
+  });
+
+  app.post("/records", async (req, res) => {
+    const t0 = process.hrtime.bigint();
+    try {
+      const response = await handleCreate(req.body ?? {});
+      return res.json({ ok: true, ...response, durationMs: durationMs(t0) });
+    } catch (err) {
+      return res.status(400).json({
+        ok: false,
+        error: err?.message ?? String(err),
+        durationMs: durationMs(t0)
+      });
+    }
+  });
+
+  app.get("/records/:id", async (req, res) => {
+    const t0 = process.hrtime.bigint();
+    try {
+      const response = await handleRead({
+        id: req.params.id,
+        format: req.query.format,
+        contentFormat: req.query.contentFormat
+      });
+      if (response.status === 404) {
+        return res.status(404).json({ ok: false, error: response.error, durationMs: durationMs(t0) });
+      }
+      return res.json({ ok: true, ...response, durationMs: durationMs(t0) });
+    } catch (err) {
+      return res.status(400).json({
+        ok: false,
+        error: err?.message ?? String(err),
+        durationMs: durationMs(t0)
+      });
+    }
+  });
+
+  app.put("/records/:id", async (req, res) => {
+    const t0 = process.hrtime.bigint();
+    try {
+      const response = await handleUpdate({
+        id: req.params.id,
+        ...req.body
+      });
+      if (response.status) {
+        return res.status(response.status).json({
+          ok: false,
+          error: response.error,
+          durationMs: durationMs(t0)
+        });
+      }
+      return res.json({ ok: true, ...response, durationMs: durationMs(t0) });
+    } catch (err) {
+      return res.status(400).json({
+        ok: false,
+        error: err?.message ?? String(err),
+        durationMs: durationMs(t0)
+      });
+    }
+  });
+
+  app.delete("/records/:id", async (req, res) => {
+    const t0 = process.hrtime.bigint();
+    try {
+      const response = await handleDelete({
+        id: req.params.id,
+        ...req.body
+      });
+      if (response.status) {
+        return res.status(response.status).json({
+          ok: false,
+          error: response.error,
+          durationMs: durationMs(t0)
+        });
+      }
+      return res.json({ ok: true, ...response, durationMs: durationMs(t0) });
+    } catch (err) {
+      return res.status(400).json({
+        ok: false,
+        error: err?.message ?? String(err),
+        durationMs: durationMs(t0)
+      });
+    }
+  });
+
+  app.use("/browser-test", express.static(browserTestDir));
+
+  const httpServer = http.createServer(app);
+  const start = () =>
+    new Promise(resolve => {
+      httpServer.listen(port, () => resolve({ port }));
+    });
+  const stop = () =>
+    new Promise((resolve, reject) => {
+      httpServer.close(err => (err ? reject(err) : resolve()));
+    });
+
+  return { app, httpServer, start, stop };
+}
+
+const isMain = process.argv[1] &amp;&amp; import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMain) {
+  const { start } = createServer({ port: CONFIG.port });
+  start().then(({ port }) => {
+    console.log(`max_speed_test_server listening on http://localhost:${port}`);
+    console.log("Browser test: http://localhost:8899/browser-test/");
+    console.log(`source: ${path.resolve(__dirname)}`);
+  });
+}
+
+export {
+  createServer,
+  handleCreate,
+  handleRead,
+  handleUpdate,
+  handleDelete
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>ULDA Bachelor Research Workspace</h1>
+<h2>Overview</h2>
+<p>This repository is a public-facing ULDA research and bachelor-project workspace related to the topic:</p>
+<p><strong>Information system of stateless authentication for web services with minimal metadata disclosure. Information and software support for cryptographic subject verification based on ULDA protocols.</strong></p>
+<p>The repository is intended for experimental development, software maintenance coursework, and demonstration of ULDA-based ideas. It should not be interpreted as a production-ready identity platform.</p>
+<h2>Relation to the bachelor thesis topic</h2>
+<p>The main focus of this repository is the ULDA-based approach to cryptographic subject verification and state progression with minimal metadata disclosure.</p>
+<ul>
+<li><code>packages/ulda-sign</code> contains the core signing and verification logic most closely related to the bachelor topic.</li>
+<li><code>packages/ulda-front</code> provides a frontend-oriented integration layer for working with ULDA-backed encrypted records.</li>
+<li>The applications under <code>applications/</code> are supporting demos, experiments, and test servers built around those packages.</li>
+</ul>
+<p>Although the repository includes a password keeper example, this project is <strong>not</strong> positioned as a generic password manager repository. The password keeper is only a demonstration application used to showcase ULDA integration in a browser-oriented workflow.</p>
+<h2>Repository structure</h2>
+<ul>
+<li>
+<p><code>packages/ulda-sign</code><br>
+Core ULDA signing functionality and tests. This is the part most directly connected to the research topic.</p>
+</li>
+<li>
+<p><code>packages/ulda-front</code><br>
+Frontend integration layer for working with ULDA-protected data and transport adapters.</p>
+</li>
+<li>
+<p><code>applications/example-password-keeper</code><br>
+Demo application that shows one possible user-facing integration of the ULDA approach.</p>
+</li>
+<li>
+<p><code>applications/ulda-crud</code><br>
+Supporting CRUD-style demo server backed by MySQL for experiments with ULDA state verification.</p>
+</li>
+<li>
+<p><code>applications/max_speed_test_server</code><br>
+Supporting in-memory test server for performance and stress experiments.</p>
+</li>
+</ul>
+<h2>How to start exploring the repository</h2>
+<p>There is no single root application entry point. The repository is organized as a workspace of related packages and demo applications.</p>
+<p>Suggested starting points:</p>
+<ol>
+<li>Review <code>packages/ulda-sign</code> to inspect the core ULDA-related logic.</li>
+<li>Review <code>packages/ulda-front</code> to understand the frontend-facing integration layer.</li>
+<li>Open one of the demo applications in <code>applications/</code> depending on your focus:
+<ul>
+<li><code>example-password-keeper</code> for an end-user style demo</li>
+<li><code>ulda-crud</code> for a MySQL-backed demo server</li>
+<li><code>max_speed_test_server</code> for performance-oriented experiments</li>
+</ul>
+</li>
+</ol>
+<p>Each application directory contains its own <code>package.json</code> and local documentation. Where available, use the scripts documented in those local files instead of assuming a root-level bootstrap command.</p>
+<h2>Documentation conventions</h2>
+<p>This repository uses <strong>JSDoc</strong> as the primary code documentation style for JavaScript source files.</p>
+<p>At minimum, documentation is expected for:</p>
+<ul>
+<li>public classes and exported functions in <code>packages/ulda-sign/ulda-sign.js</code></li>
+<li>public classes and exported functions in <code>packages/ulda-front/ulda-front.js</code></li>
+<li>exported HTTP-facing handlers and server factories in the demo server applications</li>
+<li>important configuration and payload shapes that are reused across the codebase</li>
+</ul>
+<p>The most important JSDoc tags in this project are:</p>
+<ul>
+<li><code>@param</code></li>
+<li><code>@returns</code></li>
+<li><code>@throws</code></li>
+<li><code>@typedef</code></li>
+<li><code>@example</code></li>
+</ul>
+<p>Documentation must be updated when:</p>
+<ul>
+<li>a public interface changes</li>
+<li>a function starts accepting a new config shape or payload shape</li>
+<li>a behavior-related example becomes outdated</li>
+<li>a generated documentation build would otherwise diverge from the actual implementation</li>
+</ul>
+<p>Supporting documentation lives in:</p>
+<ul>
+<li><code>docs/architecture.md</code></li>
+<li><code>docs/algorithms.md</code></li>
+<li><code>docs/interactions.md</code></li>
+<li><code>docs/generate_docs.md</code></li>
+</ul>
+<p>Generated HTML documentation is produced into <code>generated-docs/jsdoc/</code>.
+Living documentation examples are kept in JSDoc <code>@example</code> blocks and in the existing test files under <code>packages/*/tests/</code>.</p>
+<h2>Security and privacy note</h2>
+<p>This repository is intended to avoid storing private or sensitive information in version control. Example environment files may be included as configuration templates, but they are not secrets and should not be treated as deployed credentials.</p>
+<p>The code and demos in this repository are experimental. They are useful for research, coursework, and prototype evaluation, but they do not claim production readiness, full hardening, or a complete operational security model.</p>
+<h2>Prototype status</h2>
+<p>This repository contains demo and research prototype code. It is not production-ready software and should be treated as an experimental workspace for ULDA-related development and evaluation.</p>
+<h2>License</h2>
+<p>This repository is distributed under the MIT License. See the root <code>LICENSE</code> file for the full text.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="UldaFrontError.html">UldaFrontError</a></li><li><a href="UldaNotImplementedError.html">UldaNotImplementedError</a></li><li><a href="UldaSecurityError.html">UldaSecurityError</a></li><li><a href="UldaSign.html">UldaSign</a></li><li><a href="UldaStateError.html">UldaStateError</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-algorithms.html">algorithms</a></li><li><a href="tutorial-architecture.html">architecture</a></li><li><a href="tutorial-generate_docs.html">generate_docs</a></li><li><a href="tutorial-interactions.html">interactions</a></li><li><a href="tutorial-linting.html">linting</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEFAULT_OPTIONS">DEFAULT_OPTIONS</a></li><li><a href="global.html#__dirname">__dirname</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#connectOnce">connectOnce</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createHttpJsonRequest">createHttpJsonRequest</a></li><li><a href="global.html#createRestAdapter">createRestAdapter</a></li><li><a href="global.html#createServer">createServer</a></li><li><a href="global.html#createSocketIOAdapter">createSocketIOAdapter</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#delete">delete</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#handleCreate">handleCreate</a></li><li><a href="global.html#handleDelete">handleDelete</a></li><li><a href="global.html#handleRead">handleRead</a></li><li><a href="global.html#handleUpdate">handleUpdate</a></li><li><a href="global.html#id">id</a></li><li><a href="global.html#reload">reload</a></li><li><a href="global.html#update">update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Mar 26 2026 23:59:13 GMT+0100 (Центральная Европа, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
