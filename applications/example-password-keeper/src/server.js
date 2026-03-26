@@ -18,7 +18,7 @@ const packagesDir = path.resolve(rootDir, "..", "..", "packages");
 
 function ensureWebCrypto() {
   if (!globalThis.crypto?.subtle || typeof globalThis.crypto.getRandomValues !== "function") {
-    globalThis.crypto = webcrypto;
+    globalThis.crypto = /** @type {any} */ (webcrypto);
   }
   if (typeof globalThis.btoa !== "function") {
     globalThis.btoa = str => Buffer.from(str, "binary").toString("base64");
@@ -60,7 +60,7 @@ const CONFIG = {
 };
 
 function normalizeOriginSize(value, fallback = 256) {
-  if (value == null || value === "") return fallback;
+  if (value === null || typeof value === "undefined" || value === "") return fallback;
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0 || n % 8 !== 0) {
     throw new Error("originSize must be a positive multiple of 8 (bits)");
@@ -69,7 +69,7 @@ function normalizeOriginSize(value, fallback = 256) {
 }
 
 function normalizeFormat(value, fallback = "hex") {
-  if (value == null || value === "") return fallback;
+  if (value === null || typeof value === "undefined" || value === "") return fallback;
   const fmt = String(value).toLowerCase();
   if (fmt === "hex" || fmt === "base64" || fmt === "bytes") return fmt;
   throw new Error("format must be hex, base64, or bytes");
@@ -142,6 +142,9 @@ function createTrace(label, startNs = process.hrtime.bigint()) {
   };
 }
 
+/**
+ * @param {{ database?: string }} [options]
+ */
 async function connectOnce({ database } = {}) {
   const pool = mysql.createPool({
     host: CONFIG.db.host,

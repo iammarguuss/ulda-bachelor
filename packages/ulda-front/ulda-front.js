@@ -106,14 +106,6 @@ function isPlainObject(value) {
   return proto === Object.prototype || proto === null;
 }
 
-function cloneJsonValue(value) {
-  if (value === null || typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map(cloneJsonValue);
-  const out = {};
-  for (const [k, v] of Object.entries(value)) out[k] = cloneJsonValue(v);
-  return out;
-}
-
 function normalizeHttpBase(input) {
   if (!input) return null;
   const url = new URL(String(input));
@@ -234,7 +226,7 @@ async function decryptEnvelopeInternal({ role, encrypted, key }) {
   if (!isPlainObject(envelope) || envelope.enc !== "A256GCM") {
     throw new UldaSecurityError("Unsupported or malformed envelope");
   }
-  if (envelope.v != null && envelope.v !== 1) {
+  if (envelope.v !== null && typeof envelope.v !== "undefined" && envelope.v !== 1) {
     throw new UldaSecurityError("Unsupported envelope version");
   }
   const iv = base64ToBytes(String(envelope.iv ?? ""));
@@ -284,11 +276,15 @@ async function decryptEnvelopeInternal({ role, encrypted, key }) {
   return parsed;
 }
 
+/**
+ * @param {(input: string, init?: RequestInit) => Promise<Response>} fetchImpl
+ * @param {{ method: string, url: string, body?: unknown }} request
+ */
 function createHttpJsonRequest(fetchImpl, { method, url, body }) {
   return fetchImpl(url, {
     method,
     headers: { "Content-Type": "application/json" },
-    ...(body == null ? {} : { body: JSON.stringify(body) })
+    ...(body === null || typeof body === "undefined" ? {} : { body: JSON.stringify(body) })
   });
 }
 
@@ -556,6 +552,16 @@ export function createRestAdapter({
   });
 }
 
+/**
+ * @param {{
+ *   socket?: { emit: Function },
+ *   fetchImpl?: typeof fetch,
+ *   signConfig?: object|null,
+ *   configBaseUrl?: string|null,
+ *   kdfIterations?: number,
+ *   timeoutMs?: number
+ * }} [options]
+ */
 export function createSocketIOAdapter({
   socket,
   fetchImpl = globalThis.fetch,
@@ -722,9 +728,7 @@ export default class UldaFront {
    * @param {number|string|null} id
    * @param {string|Uint8Array|null} password
    * @param {string|null} serverConnection
-   * @param {object} [cfg]
-   * @param {object} cfg.adapter Required adapter with transport+crypto methods.
-   * @param {object} [cfg.options] Runtime options (security + autosave).
+   * @param {{ adapter?: object|null, options?: object }} [cfg] Adapter and runtime options.
    */
   constructor(id = null, password = null, serverConnection = null, cfg = {}) {
     this.#adapter = cfg.adapter ?? null;
@@ -746,7 +750,13 @@ export default class UldaFront {
     this.#pendingCreateLogicalNames = new Set();
     this.#pendingDeleteLogicalNames = new Set();
 
-    this.#flushChain = Promise.resolve();
+    this.#flushChain = /** @type {Promise<{
+      ok: boolean,
+      skipped?: boolean,
+      created?: number,
+      updated?: number,
+      deleted?: number
+    }>} */ (Promise.resolve({ ok: true, skipped: true }));
     this.#autosaveTimer = null;
 
     this.#validateAdapter();
@@ -772,18 +782,20 @@ export default class UldaFront {
 
   /**
    * Connect to existing master cabinet.
+   *
+   * @param {{ id?: number|string|null, password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
    */
   async connect({ id = this.#masterId, password, serverConnection = this.#serverUrl } = {}) {
     this.#assertOpen();
     this.#assertAdapterReady();
     this.#validateServerUrl(serverConnection);
-    if (id == null) throw new UldaStateError("connect() requires a master id");
+    if (id === null || typeof id === "undefined") throw new UldaStateError("connect() requires a master id");
     const resolvedPassword = password ?? this.#passwordSeed;
-    if (resolvedPassword == null && !this.#masterKey) {
+    if ((resolvedPassword === null || typeof resolvedPassword === "undefined") && !this.#masterKey) {
       throw new UldaStateError("connect() requires password (or an active master key)");
     }
 
-    if (resolvedPassword != null) await this.#setPassword(resolvedPassword);
+    if (resolvedPassword !== null && typeof resolvedPassword !== "undefined") await this.#setPassword(resolvedPassword);
     this.#serverUrl = serverConnection;
     this.#masterId = id;
 
@@ -834,13 +846,17 @@ export default class UldaFront {
    * Security-first default:
    * - caller supplies password
    * - master record created with empty links/data
+   *
+   * @param {{ password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
    */
   async create({ password, serverConnection = this.#serverUrl } = {}) {
     this.#assertOpen();
     this.#assertAdapterReady();
     this.#validateServerUrl(serverConnection);
     const resolvedPassword = password ?? this.#passwordSeed;
-    if (resolvedPassword == null) throw new UldaStateError("create() requires a password");
+    if (resolvedPassword === null || typeof resolvedPassword === "undefined") {
+      throw new UldaStateError("create() requires a password");
+    }
     await this.#setPassword(resolvedPassword);
     this.#serverUrl = serverConnection;
 
@@ -907,7 +923,7 @@ export default class UldaFront {
    */
   async delete(target) {
     this.#assertConnected();
-    if (target == null) {
+    if (target === null || typeof target === "undefined") {
       return this.#deleteMasterCabinet();
     }
     if (typeof target !== "string" || !target.trim()) {
@@ -1287,7 +1303,7 @@ export default class UldaFront {
   }
 
   #validateServerUrl(value) {
-    if (value == null) return;
+    if (value === null || typeof value === "undefined") return;
     let url;
     try {
       url = new URL(String(value));

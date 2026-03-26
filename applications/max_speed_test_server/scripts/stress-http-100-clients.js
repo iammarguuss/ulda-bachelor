@@ -3,7 +3,7 @@ import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
 function ensureWebCrypto() {
   if (!globalThis.crypto?.subtle || typeof globalThis.crypto.getRandomValues !== "function") {
-    globalThis.crypto = webcrypto;
+    globalThis.crypto = /** @type {any} */ (webcrypto);
   }
   if (typeof globalThis.btoa !== "function") {
     globalThis.btoa = str => Buffer.from(str, "binary").toString("base64");
@@ -26,6 +26,10 @@ function randomBase64(byteLen) {
   return Buffer.from(bytes).toString("base64");
 }
 
+/**
+ * @param {string} path
+ * @param {{ method?: string, body?: unknown }} [options]
+ */
 async function jsonRequest(path, { method = "GET", body } = {}) {
   const response = await fetch(`${BASE_URL}${path}`, {
     method,

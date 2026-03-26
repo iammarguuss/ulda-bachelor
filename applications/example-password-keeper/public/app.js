@@ -37,7 +37,7 @@ ui.serverUrl.value = location.origin;
 function log(message, data) {
   const time = new Date().toISOString();
   const line = `[${time}] ${message}`;
-  const payload = data == null ? "" : `\n${JSON.stringify(data, null, 2)}`;
+  const payload = data === null || typeof data === "undefined" ? "" : `\n${JSON.stringify(data, null, 2)}`;
   ui.log.textContent = `${line}${payload}\n${ui.log.textContent}`.slice(0, 30_000);
 }
 

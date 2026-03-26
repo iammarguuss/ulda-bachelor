@@ -1,4 +1,3 @@
-const recordCountEl = document.querySelector("#recordCount");
 const concurrencyEl = document.querySelector("#concurrency");
 const stressSecondsEl = document.querySelector("#stressSeconds");
 const doReadEl = document.querySelector("#doRead");
