@@ -173,7 +173,8 @@ function createTrace(label, startNs = process.hrtime.bigint()) {
 }
 
 /**
- * @param {{ database?: string }} [options]
+ * @param {Object} [options]
+ * @param {string} [options.database]
  */
 async function connectOnce({ database } = {}) {
   const pool = mysql.createPool({
@@ -391,14 +392,9 @@ async function handleDelete(payload, trace) {
 /**
  * Creates the HTTP and Socket.IO server used by the example password-keeper demo.
  *
- * @param {{ port?: number }} [options] Runtime port override.
- * @returns {{
- *   app: any,
- *   httpServer: import("node:http").Server,
- *   io: SocketIOServer,
- *   start: () => Promise<{ port: number }>,
- *   stop: () => Promise<void>
- * }} Server handles.
+ * @param {Object} [options] Runtime port override.
+ * @param {number} [options.port]
+ * @returns {Object} Server handles.
  */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();

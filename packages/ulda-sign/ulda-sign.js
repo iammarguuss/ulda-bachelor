@@ -4,7 +4,7 @@
 
 /**
  * @typedef {Object} UldaExternalHasherConfig
- * @property {(input: Uint8Array) => Promise<Uint8Array|string>|Uint8Array|string} fn External hashing implementation.
+ * @property {Function} fn External hashing implementation.
  * @property {"bytes"|"hex"|"base64"} [output="bytes"] Output format produced by the hasher.
  * @property {number|null} [size=null] Expected output size in bits when the hash size is fixed.
  * @property {string|null} [cdn=null] Optional script URL used to lazy-load the implementation in browser environments.
@@ -14,17 +14,17 @@
 /**
  * @typedef {Object} UldaSignConfig
  * @property {string} [version="1"] Version marker kept in the internal global config.
- * @property {{ export?: UldaExportFormat }} [fmt] Output serialization format for exported origin and signature packages.
- * @property {{
- *   N?: number,
- *   mode?: "S"|"X",
- *   hash?: string,
- *   originSize?: number,
- *   pack?: string,
- *   func?: (input: Uint8Array) => Promise<Uint8Array|string>|Uint8Array|string,
- *   output?: "bytes"|"hex"|"base64",
- *   cdn?: string|null
- * }} [sign] Signing parameters and optional custom hashing hook.
+ * @property {Object} [fmt] Output serialization format for exported origin and signature packages.
+ * @property {UldaExportFormat} [fmt.export] Export format for generated packages.
+ * @property {Object} [sign] Signing parameters and optional custom hashing hook.
+ * @property {number} [sign.N] Number of blocks in the ULDA package.
+ * @property {"S"|"X"} [sign.mode] ULDA mode used for verification.
+ * @property {string} [sign.hash] Hash algorithm name.
+ * @property {number} [sign.originSize] Origin size in bits.
+ * @property {string} [sign.pack] Internal pack identifier used by the implementation.
+ * @property {Function} [sign.func] Optional custom hash implementation.
+ * @property {"bytes"|"hex"|"base64"} [sign.output] Output format produced by a custom hasher.
+ * @property {string|null} [sign.cdn] Optional browser CDN script URL for the custom hasher.
  * @property {Record<string, UldaExternalHasherConfig>} [externalHashers] Pre-registered external hashers keyed by algorithm name.
  */
 

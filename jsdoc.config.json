@@ -1,0 +1,25 @@
+{
+  "plugins": ["plugins/markdown"],
+  "recurseDepth": 10,
+  "source": {
+    "include": [
+      "packages/ulda-sign/ulda-sign.js",
+      "packages/ulda-front/ulda-front.js",
+      "applications/ulda-crud/src/server.js",
+      "applications/example-password-keeper/src/server.js",
+      "applications/max_speed_test_server/src/server.js"
+    ],
+    "includePattern": ".+\\.js$"
+  },
+  "opts": {
+    "destination": "./generated-docs/jsdoc",
+    "recurse": false,
+    "readme": "./README.md",
+    "tutorials": "./docs",
+    "encoding": "utf8"
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
+  }
+}

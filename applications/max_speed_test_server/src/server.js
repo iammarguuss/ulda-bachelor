@@ -195,13 +195,9 @@ async function handleDelete(payload) {
 /**
  * Creates the HTTP server used by the in-memory speed-test application.
  *
- * @param {{ port?: number }} [options] Runtime port override.
- * @returns {{
- *   app: any,
- *   httpServer: import("node:http").Server,
- *   start: () => Promise<{ port: number }>,
- *   stop: () => Promise<void>
- * }} Server handles.
+ * @param {Object} [options] Runtime port override.
+ * @param {number} [options.port]
+ * @returns {Object} Server handles.
  */
 function createServer({ port = CONFIG.port } = {}) {
   const app = express();

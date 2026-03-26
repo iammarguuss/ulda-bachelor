@@ -2,11 +2,11 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
 
 /**
  * @typedef {Object} UldaFrontOptions
- * @property {boolean} [autosave=true] Automatically flushes pending mutations after proxy changes.
- * @property {number} [autosaveDebounceMs=0] Delay in milliseconds before an autosave flush is scheduled.
- * @property {boolean} [allowInsecureLocalhost=false] Allows `http://localhost` and `ws://localhost` style demo connections.
- * @property {number} [maxMutationDepth=64] Maximum supported nested proxy mutation depth.
- * @property {number} [maxLogicalNameLength=128] Maximum accepted top-level logical key length.
+ * @property {boolean} [autosave] Automatically flushes pending mutations after proxy changes.
+ * @property {number} [autosaveDebounceMs] Delay in milliseconds before an autosave flush is scheduled.
+ * @property {boolean} [allowInsecureLocalhost] Allows `http://localhost` and `ws://localhost` style demo connections.
+ * @property {number} [maxMutationDepth] Maximum supported nested proxy mutation depth.
+ * @property {number} [maxLogicalNameLength] Maximum accepted top-level logical key length.
  */
 
 /**
@@ -18,17 +18,17 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
 
 /**
  * @typedef {Object} UldaAdapter
- * @property {(options: { serverConnection: string, uldaKey: string, content: string }) => Promise<{ id: number|string }>} createMasterRecord
- * @property {(options: { serverConnection: string, id: number|string }) => Promise<UldaRecordEnvelope>} readRecord
- * @property {(options: { serverConnection: string, uldaKey: string, content: string }) => Promise<{ id: number|string }>} createContentRecord
- * @property {(options: { serverConnection: string, id: number|string, uldaKey: string, content: string }) => Promise<{ ok: true }|object>} updateRecord
- * @property {(options: { serverConnection: string, id: number|string, uldaKey: string }) => Promise<{ ok: true }|object>} deleteRecord
- * @property {(options: { password: string|Uint8Array }) => Promise<any>} deriveMasterKey
- * @property {() => Promise<string>} generateContentKey
- * @property {(options: { role: "master"|"content", plaintext: object, key: any }) => Promise<string>} encryptEnvelope
- * @property {(options: { role: "master"|"content", encrypted: string|Uint8Array|object, key: any }) => Promise<any>} decryptEnvelope
- * @property {(options: { role: "master"|"content", serverConnection: string }) => Promise<string>} createInitialOrigin
- * @property {(options: { originPkg: string, serverConnection: string }) => Promise<{ nextOriginPkg: string, nextSignature: string }>} stepUpAndSign
+ * @property {Function} createMasterRecord
+ * @property {Function} readRecord
+ * @property {Function} createContentRecord
+ * @property {Function} updateRecord
+ * @property {Function} deleteRecord
+ * @property {Function} deriveMasterKey
+ * @property {Function} generateContentKey
+ * @property {Function} encryptEnvelope
+ * @property {Function} decryptEnvelope
+ * @property {Function} createInitialOrigin
+ * @property {Function} stepUpAndSign
  */
 
 /**
@@ -38,6 +38,58 @@ import UldaSign from "../ulda-sign/ulda-sign.js";
  * @property {number} [created] Number of created logical content records.
  * @property {number} [updated] Number of updated logical content records.
  * @property {number} [deleted] Number of deleted logical content records.
+ */
+
+/**
+ * @typedef {Object} HttpJsonRequest
+ * @property {string} method HTTP method.
+ * @property {string} url Absolute request URL.
+ * @property {*} [body] Optional JSON payload.
+ */
+
+/**
+ * @typedef {Object} RestAdapterOptions
+ * @property {Function} [fetchImpl] Fetch implementation used for HTTP requests.
+ * @property {Object|null} [signConfig] Optional fixed ULDA sign config.
+ * @property {string|null} [configBaseUrl] Optional base URL used to resolve `/config`.
+ * @property {number} [kdfIterations] PBKDF2 iteration count.
+ */
+
+/**
+ * @typedef {Object} SocketAdapterOptions
+ * @property {{ emit: Function }} [socket] Socket.IO-like transport object.
+ * @property {Function} [fetchImpl] Fetch implementation used for loading `/config` when needed.
+ * @property {Object|null} [signConfig] Optional fixed ULDA sign config.
+ * @property {string|null} [configBaseUrl] Optional base URL used to resolve `/config`.
+ * @property {number} [kdfIterations] PBKDF2 iteration count.
+ * @property {number} [timeoutMs] RPC timeout in milliseconds.
+ */
+
+/**
+ * @typedef {Object} UldaFrontConfig
+ * @property {UldaAdapter|null} [adapter] Adapter with transport and cryptographic methods.
+ * @property {UldaFrontOptions} [options] Runtime options.
+ */
+
+/**
+ * @typedef {Object} UldaConnectParams
+ * @property {number|string|null} [id] Master record id.
+ * @property {string|Uint8Array|null} [password] Password or password bytes.
+ * @property {string|null} [serverConnection] Server URL used by the adapter.
+ */
+
+/**
+ * @typedef {Object} UldaCreateParams
+ * @property {string|Uint8Array|null} [password] Password or password bytes.
+ * @property {string|null} [serverConnection] Server URL used by the adapter.
+ */
+
+/**
+ * @typedef {Object} UldaDeleteResult
+ * @property {boolean} ok Operation status.
+ * @property {boolean} [scheduled] Indicates deferred autosave deletion.
+ * @property {string} [reason] Optional reason code.
+ * @property {string} [key] Logical key associated with the result.
  */
 
 /**
@@ -317,8 +369,8 @@ async function decryptEnvelopeInternal({ role, encrypted, key }) {
 }
 
 /**
- * @param {(input: string, init?: RequestInit) => Promise<Response>} fetchImpl
- * @param {{ method: string, url: string, body?: unknown }} request
+ * @param {Function} fetchImpl
+ * @param {HttpJsonRequest} request
  */
 function createHttpJsonRequest(fetchImpl, { method, url, body }) {
   return fetchImpl(url, {
@@ -507,12 +559,7 @@ function createCoreAdapter({
 /**
  * Creates an adapter that maps ULDA client operations to the REST endpoints used by the repository demo servers.
  *
- * @param {{
- *   fetchImpl?: typeof fetch,
- *   signConfig?: object|null,
- *   configBaseUrl?: string|null,
- *   kdfIterations?: number
- * }} [options]
+ * @param {RestAdapterOptions} [options]
  * @returns {UldaAdapter} Adapter compatible with {@link UldaFront}.
  *
  * @example
@@ -610,28 +657,11 @@ export function createRestAdapter({
 }
 
 /**
- * @param {{
- *   socket?: { emit: Function },
- *   fetchImpl?: typeof fetch,
- *   signConfig?: object|null,
- *   configBaseUrl?: string|null,
- *   kdfIterations?: number,
- *   timeoutMs?: number
- * }} [options]
- */
-/**
  * Creates a Socket.IO-based adapter for ULDA cabinet operations.
  *
  * The adapter expects a socket object with `emit(event, payload, callback)` semantics compatible with the demo servers.
  *
- * @param {{
- *   socket?: { emit: Function },
- *   fetchImpl?: typeof fetch,
- *   signConfig?: object|null,
- *   configBaseUrl?: string|null,
- *   kdfIterations?: number,
- *   timeoutMs?: number
- * }} [options]
+ * @param {SocketAdapterOptions} [options]
  * @returns {UldaAdapter} Adapter compatible with {@link UldaFront}.
  *
  * @example
@@ -840,7 +870,7 @@ export default class UldaFront {
    * @param {number|string|null} id
    * @param {string|Uint8Array|null} password
    * @param {string|null} serverConnection
-   * @param {{ adapter?: object|null, options?: object }} [cfg] Adapter and runtime options.
+   * @param {UldaFrontConfig} [cfg] Adapter and runtime options.
    */
   constructor(id = null, password = null, serverConnection = null, cfg = {}) {
     this.#adapter = cfg.adapter ?? null;
@@ -862,13 +892,7 @@ export default class UldaFront {
     this.#pendingCreateLogicalNames = new Set();
     this.#pendingDeleteLogicalNames = new Set();
 
-    this.#flushChain = /** @type {Promise<{
-      ok: boolean,
-      skipped?: boolean,
-      created?: number,
-      updated?: number,
-      deleted?: number
-    }>} */ (Promise.resolve({ ok: true, skipped: true }));
+    this.#flushChain = /** @type {Promise<UldaMutationSummary>} */ (Promise.resolve({ ok: true, skipped: true }));
     this.#autosaveTimer = null;
 
     this.#validateAdapter();
@@ -899,7 +923,7 @@ export default class UldaFront {
   /**
    * Connect to existing master cabinet.
    *
-   * @param {{ id?: number|string|null, password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
+   * @param {UldaConnectParams} [params]
    * @returns {Promise<{ ok: true, id: number|string|null }>} Operation result with resolved master id.
    * @throws {UldaStateError|UldaSecurityError} Throws when required connection data is missing or transport is unsafe.
    */
@@ -965,7 +989,7 @@ export default class UldaFront {
    * - caller supplies password
    * - master record created with empty links/data
    *
-   * @param {{ password?: string|Uint8Array|null, serverConnection?: string|null }} [params]
+   * @param {UldaCreateParams} [params]
    * @returns {Promise<{ ok: true, id: number|string }>} Operation result with the created master id.
    * @throws {UldaStateError|UldaSecurityError} Throws when password or transport requirements are not satisfied.
    */
@@ -1046,7 +1070,7 @@ export default class UldaFront {
    * - delete("name")       -> delete one logical content entry
    *
    * @param {string|null|undefined} [target] Logical key to delete, or omit to delete the whole cabinet.
-   * @returns {Promise<{ ok: boolean, scheduled?: boolean, reason?: string, key?: string }|{ ok: true }>} Deletion result.
+   * @returns {Promise<UldaDeleteResult|{ ok: true }>} Deletion result.
    * @throws {UldaStateError} Throws when a logical key is invalid.
    */
   async delete(target) {

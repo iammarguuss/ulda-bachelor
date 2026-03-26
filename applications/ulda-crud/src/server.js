@@ -34,9 +34,18 @@ import UldaSign from "../../../packages/ulda-sign/ulda-sign.js";
 
 /**
  * @typedef {Object} TraceLogger
- * @property {(message: string, extra?: string) => void} step Emits a progress message.
- * @property {(error: unknown) => void} error Emits an error message.
- * @property {(status: number) => void} done Emits a final completion marker.
+ * @property {Function} step Emits a progress message.
+ * @property {Function} error Emits an error message.
+ * @property {Function} done Emits a final completion marker.
+ */
+
+/**
+ * @typedef {Object} CrudServer
+ * @property {*} app Express application instance.
+ * @property {*} httpServer HTTP server instance.
+ * @property {*} io Socket.IO server instance.
+ * @property {Function} start Starts the server.
+ * @property {Function} stop Stops the server.
  */
 
 /**
@@ -174,7 +183,8 @@ function durationMs(startNs) {
 }
 
 /**
- * @param {{ database?: string }} [options]
+ * @param {Object} [options]
+ * @param {string} [options.database]
  */
 async function connectOnce({ database } = {}) {
   const pool = mysql.createPool({
@@ -384,14 +394,9 @@ async function handleDelete(payload, trace) {
  * The returned object exposes the Express app, the underlying HTTP server, the Socket.IO server,
  * and start/stop helpers used by runtime bootstrap or tests.
  *
- * @param {{ port?: number }} [options] Runtime port override.
- * @returns {{
- *   app: any,
- *   httpServer: import("node:http").Server,
- *   io: SocketIOServer,
- *   start: () => Promise<{ port: number }>,
- *   stop: () => Promise<void>
- * }} Server handles.
+ * @param {Object} [options] Runtime port override.
+ * @param {number} [options.port]
+ * @returns {CrudServer} Server handles.
  *
  * @example
  * const { start } = createServer({ port: 8787 });
