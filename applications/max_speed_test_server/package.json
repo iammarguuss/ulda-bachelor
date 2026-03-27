@@ -7,7 +7,10 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node src/server.js",
-    "stress": "node scripts/stress-http-100-clients.js"
+    "stress": "node scripts/stress-http-100-clients.js",
+    "perf:baseline": "node scripts/perf-scenarios.js --label baseline --out ../../artifacts/performance/baseline-results.json",
+    "perf:profile": "node scripts/perf-profile.js --label baseline-large --out ../../artifacts/performance/baseline-large-hotspots.json",
+    "perf:compare": "node scripts/perf-compare.js ../../artifacts/performance/baseline-results.json ../../artifacts/performance/post-optimization-results.json ../../artifacts/performance/performance-comparison.json"
   },
   "engines": {
     "node": ">=18"
