@@ -117,6 +117,8 @@ If you are on Windows without `cp`, create `.env` manually from `.env.example`.
 Review at least these variables:
 
 - `PORT`
+- `LOG_LEVEL`
+- `LOG_DIR`
 - `DB_HOST`
 - `DB_PORT`
 - `DB_USER`
@@ -205,6 +207,8 @@ Supporting documentation lives in:
 - `docs/algorithms.md`
 - `docs/interactions.md`
 - `docs/generate_docs.md`
+- `docs/logging.md`
+- `docs/error-handling.md`
 
 Generated HTML documentation is produced into `generated-docs/jsdoc/`.
 Living documentation examples are kept in JSDoc `@example` blocks and in the existing test files under `packages/*/tests/`.
