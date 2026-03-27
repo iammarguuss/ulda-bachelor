@@ -34,6 +34,20 @@ const state = {
 
 ui.serverUrl.value = location.origin;
 
+async function sendClientLog(payload) {
+  try {
+    await fetch("/client-logs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Ignore logging transport failures to avoid blocking the UI.
+  }
+}
+
 function log(message, data) {
   const time = new Date().toISOString();
   const line = `[${time}] ${message}`;
@@ -347,6 +361,26 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+window.addEventListener("error", event => {
+  void sendClientLog({
+    type: "error",
+    message: event.message,
+    source: event.filename ?? null,
+    line: event.lineno ?? null,
+    column: event.colno ?? null,
+    page: location.href
+  });
+});
+
+window.addEventListener("unhandledrejection", event => {
+  const reason = event.reason;
+  void sendClientLog({
+    type: "unhandledrejection",
+    message: reason?.message ?? String(reason),
+    page: location.href
+  });
+});
 
 ui.createBtn.addEventListener("click", async () => {
   try {

@@ -2,7 +2,7 @@ import express from "express";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { webcrypto } from "node:crypto";
+import { webcrypto, randomUUID } from "node:crypto";
 import { Server as SocketIOServer } from "socket.io";
 import { exec as execCb } from "node:child_process";
 import { promisify } from "node:util";
@@ -441,6 +441,29 @@ function createServer({ port = CONFIG.port } = {}) {
       trace?.error(err);
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }
+  });
+
+  app.post("/client-logs", (req, res) => {
+    const requestId = randomUUID();
+    const payload = {
+      type: typeof req.body?.type === "string" ? req.body.type.slice(0, 64) : "unknown",
+      message: typeof req.body?.message === "string" ? req.body.message.slice(0, 500) : "no-message",
+      source: typeof req.body?.source === "string" ? req.body.source.slice(0, 300) : null,
+      line: Number.isFinite(Number(req.body?.line)) ? Number(req.body.line) : null,
+      column: Number.isFinite(Number(req.body?.column)) ? Number(req.body.column) : null,
+      page: typeof req.body?.page === "string" ? req.body.page.slice(0, 300) : null
+    };
+
+    console.warn("[client-log]", JSON.stringify({
+      requestId,
+      app: "example-password-keeper",
+      ...payload
+    }));
+
+    res.status(202).json({
+      ok: true,
+      requestId
+    });
   });
 
   app.post("/records", async (req, res) => {
