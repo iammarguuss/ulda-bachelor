@@ -1,0 +1,40 @@
+services:
+  ulda-crud:
+    build:
+      context: .
+    container_name: ulda-crud-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DOCKER_ENABLE: "false"
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: ulda-crud-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_DOCKER_ROOT_PASSWORD:-ulda_root}
+      MYSQL_DATABASE: ${DB_NAME:-ulda}
+      MYSQL_USER: ${DB_USER:-ulda}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ulda}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - ulda_crud_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_DOCKER_ROOT_PASSWORD:-ulda_root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  ulda_crud_mysql:

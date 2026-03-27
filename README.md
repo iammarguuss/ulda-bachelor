@@ -168,6 +168,11 @@ More deployment, update, and backup guidance is documented in:
 - `docs/update.md`
 - `docs/backup.md`
 
+For an optional container-based setup of the same deployment target, see:
+
+- `applications/ulda-crud/Dockerfile`
+- `applications/ulda-crud/docker-compose.yml`
+
 ## Documentation conventions
 
 This repository uses **JSDoc** as the primary code documentation style for JavaScript source files.

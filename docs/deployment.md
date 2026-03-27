@@ -162,10 +162,18 @@ node src/server.js
 
 ### Optional container deployment
 
-If container support is present in the repository, use:
+This repository also includes a simple container-based option for the same deployment target:
 
 - `applications/ulda-crud/Dockerfile`
 - `applications/ulda-crud/docker-compose.yml`
+- `applications/ulda-crud/.dockerignore`
+
+Prepare `.env` first:
+
+```bash
+cd applications/ulda-crud
+cp .env.example .env
+```
 
 Example:
 
@@ -199,6 +207,13 @@ Expected result: JSON describing ULDA-related runtime parameters.
 - open `http://localhost:8787/browser-test/`
 
 4. If MySQL is external, confirm that the target database contains table `main`.
+
+For the compose-based setup, you can also verify running containers:
+
+```bash
+cd applications/ulda-crud
+docker compose ps
+```
 
 ## Operational notes
 
