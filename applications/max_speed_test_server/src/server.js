@@ -49,6 +49,7 @@ const CONFIG = {
   },
   contentBytes: Number(process.env.CONTENT_BYTES ?? 32)
 };
+const BASE64_CACHE_MAX_BYTES = 512;
 
 function normalizeOriginSize(value, fallback = 256) {
   if (value === null || typeof value === "undefined" || value === "") return fallback;
@@ -75,27 +76,47 @@ function normalizeId(value) {
 }
 
 function parseBytes(input, format, label) {
-  if (input instanceof Uint8Array) return Buffer.from(input);
-  if (Array.isArray(input)) return Buffer.from(input);
-  if (typeof input !== "string") {
-    throw new Error(`${label} must be a string or byte array`);
+  const startedAt = process.hrtime.bigint();
+  try {
+    if (Buffer.isBuffer(input)) return input;
+    if (input instanceof Uint8Array) {
+      return Buffer.from(input.buffer, input.byteOffset, input.byteLength);
+    }
+    if (Array.isArray(input)) return Buffer.from(input);
+    if (typeof input !== "string") {
+      throw new Error(`${label} must be a string or byte array`);
+    }
+    const trimmed = input[0] === " " || input.at(-1) === " " ? input.trim() : input;
+    const fmt =
+      format === null || typeof format === "undefined" || format === "" ? "hex" :
+      format === "hex" || format === "base64" || format === "bytes" ? format :
+      normalizeFormat(format, "hex");
+    if (fmt === "bytes") {
+      throw new Error(`${label} with format=bytes must be an array`);
+    }
+    if (fmt === "hex") return Buffer.from(trimmed, "hex");
+    if (fmt === "base64") return Buffer.from(trimmed, "base64");
+    throw new Error(`Unsupported ${label} format`);
+  } finally {
+    recordProfileMetric("parseBytes", startedAt);
   }
-  const trimmed = input.trim();
-  const fmt = normalizeFormat(format, "hex");
-  if (fmt === "bytes") {
-    throw new Error(`${label} with format=bytes must be an array`);
-  }
-  if (fmt === "hex") return Buffer.from(trimmed, "hex");
-  if (fmt === "base64") return Buffer.from(trimmed, "base64");
-  throw new Error(`Unsupported ${label} format`);
 }
 
 function encodeBytes(bytes, format) {
-  const fmt = normalizeFormat(format, "base64");
-  if (fmt === "hex") return Buffer.from(bytes).toString("hex");
-  if (fmt === "base64") return Buffer.from(bytes).toString("base64");
-  if (fmt === "bytes") return Array.from(Buffer.from(bytes));
-  return Buffer.from(bytes).toString("base64");
+  const startedAt = process.hrtime.bigint();
+  try {
+    const source = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+    const fmt =
+      format === null || typeof format === "undefined" || format === "" ? "base64" :
+      format === "hex" || format === "base64" || format === "bytes" ? format :
+      normalizeFormat(format, "base64");
+    if (fmt === "hex") return source.toString("hex");
+    if (fmt === "base64") return source.toString("base64");
+    if (fmt === "bytes") return Array.from(source);
+    return source.toString("base64");
+  } finally {
+    recordProfileMetric("encodeBytes", startedAt);
+  }
 }
 
 function durationMs(startNs) {
@@ -104,11 +125,64 @@ function durationMs(startNs) {
 
 const store = new Map();
 let nextId = 1;
+const profiling = {
+  parseBytes: { calls: 0, totalNs: 0n },
+  encodeBytes: { calls: 0, totalNs: 0n },
+  verify: { calls: 0, totalNs: 0n },
+  storeRead: { calls: 0, totalNs: 0n },
+  storeWrite: { calls: 0, totalNs: 0n }
+};
+
+function recordProfileMetric(metric, startedAt) {
+  profiling[metric].calls += 1;
+  profiling[metric].totalNs += process.hrtime.bigint() - startedAt;
+}
+
+function profilingSnapshot() {
+  return Object.fromEntries(
+    Object.entries(profiling).map(([name, metric]) => [
+      name,
+      {
+        calls: metric.calls,
+        totalMs: Number(metric.totalNs) / 1e6,
+        averageMs: metric.calls ? Number(metric.totalNs) / 1e6 / metric.calls : 0
+      }
+    ])
+  );
+}
+
+function maybeCacheBase64(buffer) {
+  return buffer.length <= BASE64_CACHE_MAX_BYTES ? buffer.toString("base64") : null;
+}
 
 const uldaVerifier = new UldaSign({
   fmt: { export: "bytes" },
   sign: { originSize: normalizeOriginSize(CONFIG.originSize, 256) }
 });
+
+function importSignature(signature) {
+  return uldaVerifier.actions.import.signature(signature);
+}
+
+async function verifyTransition(row, candidateKey) {
+  const currentSignature = row.parsedKey ?? importSignature(row.ulda_key);
+  const nextSignature = importSignature(candidateKey);
+
+  if (
+    currentSignature.N !== nextSignature.N ||
+    currentSignature.mode !== nextSignature.mode ||
+    currentSignature.alg !== nextSignature.alg
+  ) {
+    return { verified: false, nextSignature };
+  }
+
+  const verified =
+    currentSignature.mode === "S" ? await uldaVerifier.actions.VerifyS(currentSignature, nextSignature) :
+    currentSignature.mode === "X" ? await uldaVerifier.actions.VerifyX(currentSignature, nextSignature) :
+    false;
+
+  return { verified, nextSignature };
+}
 
 /**
  * Creates an in-memory record for benchmark and stress-test scenarios.
@@ -120,12 +194,16 @@ async function handleCreate(payload) {
   const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
   const content = parseBytes(payload.content, payload.contentFormat ?? "base64", "content");
   const id = nextId++;
+  const startedAt = process.hrtime.bigint();
   store.set(id, {
     id,
     ulda_key: key,
     content,
-    updatedAt: Date.now()
+    parsedKey: importSignature(key),
+    ulda_key_b64: key.toString("base64"),
+    content_b64: maybeCacheBase64(content)
   });
+  recordProfileMetric("storeWrite", startedAt);
   return { id };
 }
 
@@ -137,16 +215,24 @@ async function handleCreate(payload) {
  */
 async function handleRead(payload) {
   const id = normalizeId(payload.id);
+  const startedAt = process.hrtime.bigint();
   const row = store.get(id);
+  recordProfileMetric("storeRead", startedAt);
   if (!row) return { status: 404, error: "not found" };
   const format = payload.format ?? "base64";
   const contentFormat = payload.contentFormat ?? "base64";
+  const normalizedFormat = format === "base64" ? "base64" : normalizeFormat(format, "base64");
+  const normalizedContentFormat =
+    contentFormat === "base64" ? "base64" : normalizeFormat(contentFormat, "base64");
   return {
     id: row.id,
-    ulda_key: encodeBytes(row.ulda_key, format),
-    content: encodeBytes(row.content, contentFormat),
-    format: normalizeFormat(format, "base64"),
-    contentFormat: normalizeFormat(contentFormat, "base64")
+    ulda_key: normalizedFormat === "base64" ? row.ulda_key_b64 : encodeBytes(row.ulda_key, normalizedFormat),
+    content:
+      normalizedContentFormat === "base64" && row.content_b64 !== null ?
+        row.content_b64 :
+        encodeBytes(row.content, normalizedContentFormat),
+    format: normalizedFormat,
+    contentFormat: normalizedContentFormat
   };
 }
 
@@ -158,18 +244,26 @@ async function handleRead(payload) {
  */
 async function handleUpdate(payload) {
   const id = normalizeId(payload.id);
+  const readStartedAt = process.hrtime.bigint();
   const row = store.get(id);
+  recordProfileMetric("storeRead", readStartedAt);
   if (!row) return { status: 404, error: "not found" };
 
   const newKey = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
   const newContent = parseBytes(payload.content, payload.contentFormat ?? "base64", "content");
 
-  const verified = await uldaVerifier.verify(row.ulda_key, newKey);
+  const verifyStartedAt = process.hrtime.bigint();
+  const { verified, nextSignature } = await verifyTransition(row, newKey);
+  recordProfileMetric("verify", verifyStartedAt);
   if (!verified) return { status: 400, error: "signature verification failed" };
 
+  const writeStartedAt = process.hrtime.bigint();
   row.ulda_key = newKey;
   row.content = newContent;
-  row.updatedAt = Date.now();
+  row.parsedKey = nextSignature;
+  row.ulda_key_b64 = newKey.toString("base64");
+  row.content_b64 = maybeCacheBase64(newContent);
+  recordProfileMetric("storeWrite", writeStartedAt);
   return { verified: true };
 }
 
@@ -181,14 +275,20 @@ async function handleUpdate(payload) {
  */
 async function handleDelete(payload) {
   const id = normalizeId(payload.id);
+  const readStartedAt = process.hrtime.bigint();
   const row = store.get(id);
+  recordProfileMetric("storeRead", readStartedAt);
   if (!row) return { status: 404, error: "not found" };
 
   const key = parseBytes(payload.ulda_key ?? payload.uldaKey, payload.format, "ulda_key");
-  const verified = await uldaVerifier.verify(row.ulda_key, key);
+  const verifyStartedAt = process.hrtime.bigint();
+  const { verified } = await verifyTransition(row, key);
+  recordProfileMetric("verify", verifyStartedAt);
   if (!verified) return { status: 400, error: "signature verification failed" };
 
+  const writeStartedAt = process.hrtime.bigint();
   store.delete(id);
+  recordProfileMetric("storeWrite", writeStartedAt);
   return { deleted: true };
 }
 
@@ -230,10 +330,19 @@ function createServer({ port = CONFIG.port } = {}) {
   });
 
   app.get("/stats", (req, res) => {
+    const memory = process.memoryUsage();
     res.json({
       ok: true,
       recordsInMemory: store.size,
-      nextId
+      nextId,
+      profiling: profilingSnapshot(),
+      memory: {
+        rss: memory.rss,
+        heapTotal: memory.heapTotal,
+        heapUsed: memory.heapUsed,
+        external: memory.external,
+        arrayBuffers: memory.arrayBuffers
+      }
     });
   });
 
