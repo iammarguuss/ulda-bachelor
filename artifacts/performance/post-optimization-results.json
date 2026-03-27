@@ -1,0 +1,215 @@
+{
+  "label": "post-optimization",
+  "generatedAt": "2026-03-27T22:48:57.010Z",
+  "runtime": {
+    "node": "v22.20.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "scenarios": [
+    {
+      "name": "small",
+      "clients": 10,
+      "updatesPerClient": 1,
+      "contentBytes": 32,
+      "totalRequests": 40,
+      "successfulClients": 10,
+      "failedClients": 0,
+      "durationMs": 130.16,
+      "throughputRps": 307.31,
+      "latencyMs": {
+        "average": 17.737,
+        "p50": 17.105,
+        "p95": 27.03,
+        "max": 28.908
+      },
+      "perMethodAverageMs": {
+        "POST": 26.568,
+        "GET": 14.991,
+        "PUT": 17.39,
+        "DELETE": 11.998
+      },
+      "memory": {
+        "before": {
+          "rss": 46395392,
+          "heapTotal": 18718720,
+          "heapUsed": 11325952,
+          "external": 3774032,
+          "arrayBuffers": 67742
+        },
+        "after": {
+          "rss": 49688576,
+          "heapTotal": 21078016,
+          "heapUsed": 12873112,
+          "external": 3805250,
+          "arrayBuffers": 78614
+        },
+        "deltaHeapUsed": 1547160
+      },
+      "profiling": {
+        "parseBytes": {
+          "calls": 50,
+          "totalMs": 0.5576,
+          "averageMs": 0.011152
+        },
+        "encodeBytes": {
+          "calls": 0,
+          "totalMs": 0,
+          "averageMs": 0
+        },
+        "verify": {
+          "calls": 20,
+          "totalMs": 79.437,
+          "averageMs": 3.97185
+        },
+        "storeRead": {
+          "calls": 30,
+          "totalMs": 0.0802,
+          "averageMs": 0.002673333333333333
+        },
+        "storeWrite": {
+          "calls": 30,
+          "totalMs": 1.0894,
+          "averageMs": 0.03631333333333333
+        }
+      },
+      "recordsAfterScenario": 0
+    },
+    {
+      "name": "medium",
+      "clients": 25,
+      "updatesPerClient": 3,
+      "contentBytes": 256,
+      "totalRequests": 175,
+      "successfulClients": 25,
+      "failedClients": 0,
+      "durationMs": 293.95,
+      "throughputRps": 595.35,
+      "latencyMs": {
+        "average": 19.764,
+        "p50": 16.954,
+        "p95": 37.439,
+        "max": 44.94
+      },
+      "perMethodAverageMs": {
+        "POST": 30.593,
+        "GET": 16.087,
+        "PUT": 20.518,
+        "DELETE": 14.025
+      },
+      "memory": {
+        "before": {
+          "rss": 48402432,
+          "heapTotal": 18718720,
+          "heapUsed": 11313856,
+          "external": 3774032,
+          "arrayBuffers": 67742
+        },
+        "after": {
+          "rss": 55410688,
+          "heapTotal": 29990912,
+          "heapUsed": 12538064,
+          "external": 3844046,
+          "arrayBuffers": 115362
+        },
+        "deltaHeapUsed": 1224208
+      },
+      "profiling": {
+        "parseBytes": {
+          "calls": 225,
+          "totalMs": 2.1185,
+          "averageMs": 0.009415555555555555
+        },
+        "encodeBytes": {
+          "calls": 0,
+          "totalMs": 0,
+          "averageMs": 0
+        },
+        "verify": {
+          "calls": 100,
+          "totalMs": 645.4111,
+          "averageMs": 6.454111
+        },
+        "storeRead": {
+          "calls": 150,
+          "totalMs": 0.3914,
+          "averageMs": 0.0026093333333333333
+        },
+        "storeWrite": {
+          "calls": 125,
+          "totalMs": 1.9981,
+          "averageMs": 0.0159848
+        }
+      },
+      "recordsAfterScenario": 0
+    },
+    {
+      "name": "large",
+      "clients": 50,
+      "updatesPerClient": 5,
+      "contentBytes": 2048,
+      "totalRequests": 450,
+      "successfulClients": 50,
+      "failedClients": 0,
+      "durationMs": 754.18,
+      "throughputRps": 596.68,
+      "latencyMs": {
+        "average": 39.866,
+        "p50": 38.939,
+        "p95": 59.849,
+        "max": 66.746
+      },
+      "perMethodAverageMs": {
+        "POST": 57.042,
+        "GET": 34.813,
+        "PUT": 39.374,
+        "DELETE": 35.256
+      },
+      "memory": {
+        "before": {
+          "rss": 49123328,
+          "heapTotal": 18718720,
+          "heapUsed": 11266536,
+          "external": 3774032,
+          "arrayBuffers": 67742
+        },
+        "after": {
+          "rss": 65462272,
+          "heapTotal": 31563776,
+          "heapUsed": 17839912,
+          "external": 4262294,
+          "arrayBuffers": 529546
+        },
+        "deltaHeapUsed": 6573376
+      },
+      "profiling": {
+        "parseBytes": {
+          "calls": 650,
+          "totalMs": 6.3987,
+          "averageMs": 0.009844153846153846
+        },
+        "encodeBytes": {
+          "calls": 100,
+          "totalMs": 1.2044,
+          "averageMs": 0.012044
+        },
+        "verify": {
+          "calls": 300,
+          "totalMs": 2752.4121,
+          "averageMs": 9.174707
+        },
+        "storeRead": {
+          "calls": 400,
+          "totalMs": 0.6668,
+          "averageMs": 0.0016669999999999999
+        },
+        "storeWrite": {
+          "calls": 350,
+          "totalMs": 3.2599,
+          "averageMs": 0.009314
+        }
+      },
+      "recordsAfterScenario": 0
+    }
+  ]
+}

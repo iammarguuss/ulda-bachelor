@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-03-27T22:49:05.456Z",
+  "comparison": [
+    {
+      "scenario": "small",
+      "latencyAverageMs": {
+        "before": 18.219,
+        "after": 17.737,
+        "improvementPercent": 2.65
+      },
+      "latencyP95Ms": {
+        "before": 29.578,
+        "after": 27.03,
+        "improvementPercent": 8.61
+      },
+      "throughputRps": {
+        "before": 291.26,
+        "after": 307.31,
+        "improvementPercent": 5.51
+      },
+      "heapUsedDeltaBytes": {
+        "before": 1563496,
+        "after": 1547160,
+        "improvementPercent": 1.04
+      }
+    },
+    {
+      "scenario": "medium",
+      "latencyAverageMs": {
+        "before": 21.658,
+        "after": 19.764,
+        "improvementPercent": 8.75
+      },
+      "latencyP95Ms": {
+        "before": 39.867,
+        "after": 37.439,
+        "improvementPercent": 6.09
+      },
+      "throughputRps": {
+        "before": 487.1,
+        "after": 595.35,
+        "improvementPercent": 22.22
+      },
+      "heapUsedDeltaBytes": {
+        "before": 1182216,
+        "after": 1224208,
+        "improvementPercent": -3.55
+      }
+    },
+    {
+      "scenario": "large",
+      "latencyAverageMs": {
+        "before": 30.86,
+        "after": 39.866,
+        "improvementPercent": -29.18
+      },
+      "latencyP95Ms": {
+        "before": 57.159,
+        "after": 59.849,
+        "improvementPercent": -4.71
+      },
+      "throughputRps": {
+        "before": 611.3,
+        "after": 596.68,
+        "improvementPercent": -2.39
+      },
+      "heapUsedDeltaBytes": {
+        "before": 7138360,
+        "after": 6573376,
+        "improvementPercent": 7.91
+      }
+    }
+  ]
+}

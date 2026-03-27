@@ -1,0 +1,90 @@
+{
+  "label": "post-optimization-large",
+  "profilePath": "D:\\ulda-project\\ULDA_Server\\ulda\\ulda-bachelor\\artifacts\\performance\\post-optimization-large.cpuprofile",
+  "hotspots": [
+    {
+      "functionName": "(root)",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 257,
+      "sharePercent": 100
+    },
+    {
+      "functionName": "evaluate",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 187,
+      "sharePercent": 72.76
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/express/lib/express.js",
+      "lineNumber": 1,
+      "sampleCount": 174,
+      "sharePercent": 67.7
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/express/index.js",
+      "lineNumber": 1,
+      "sampleCount": 174,
+      "sharePercent": 67.7
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/express/lib/application.js",
+      "lineNumber": 1,
+      "sampleCount": 122,
+      "sharePercent": 47.47
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/express/lib/middleware/query.js",
+      "lineNumber": 1,
+      "sampleCount": 51,
+      "sharePercent": 19.84
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/qs/lib/index.js",
+      "lineNumber": 1,
+      "sampleCount": 50,
+      "sharePercent": 19.46
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/qs/lib/stringify.js",
+      "lineNumber": 1,
+      "sampleCount": 48,
+      "sharePercent": 18.68
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/side-channel/index.js",
+      "lineNumber": 1,
+      "sampleCount": 42,
+      "sharePercent": 16.34
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/express/lib/utils.js",
+      "lineNumber": 1,
+      "sampleCount": 36,
+      "sharePercent": 14.01
+    },
+    {
+      "functionName": "(anonymous)",
+      "url": "file:///D:/ulda-project/ULDA_Server/ulda/ulda-bachelor/applications/max_speed_test_server/node_modules/side-channel-map/index.js",
+      "lineNumber": 1,
+      "sampleCount": 33,
+      "sharePercent": 12.84
+    },
+    {
+      "functionName": "evaluate",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 32,
+      "sharePercent": 12.45
+    }
+  ]
+}

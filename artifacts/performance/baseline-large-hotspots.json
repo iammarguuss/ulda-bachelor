@@ -1,0 +1,69 @@
+{
+  "label": "baseline-large",
+  "profilePath": "D:\\ulda-project\\ULDA_Server\\ulda\\ulda-bachelor\\artifacts\\performance\\baseline-large.cpuprofile",
+  "hotspots": [
+    {
+      "functionName": "(root)",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 39,
+      "sharePercent": 100
+    },
+    {
+      "functionName": "evaluate",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 21,
+      "sharePercent": 53.85
+    },
+    {
+      "functionName": "(garbage collector)",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 2,
+      "sharePercent": 5.13
+    },
+    {
+      "functionName": "(program)",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    },
+    {
+      "functionName": "getNearestParentPackageJSONType",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    },
+    {
+      "functionName": "cwd",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    },
+    {
+      "functionName": "internalModuleStat",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    },
+    {
+      "functionName": "get TextDecoder",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    },
+    {
+      "functionName": "triggerUncaughtException",
+      "url": "",
+      "lineNumber": 0,
+      "sampleCount": 1,
+      "sharePercent": 2.56
+    }
+  ]
+}

@@ -209,6 +209,7 @@ Supporting documentation lives in:
 - `docs/generate_docs.md`
 - `docs/logging.md`
 - `docs/error-handling.md`
+- `docs/performance.md`
 
 Generated HTML documentation is produced into `generated-docs/jsdoc/`.
 Living documentation examples are kept in JSDoc `@example` blocks and in the existing test files under `packages/*/tests/`.
