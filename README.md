@@ -50,6 +50,124 @@ Suggested starting points:
 
 Each application directory contains its own `package.json` and local documentation. Where available, use the scripts documented in those local files instead of assuming a root-level bootstrap command.
 
+## Developer setup
+
+For deployment-oriented development in this repository, the most practical main target is:
+
+- `applications/ulda-crud`
+
+This is the MySQL-backed demo server and the closest thing in the repository to a standalone server deployment target.
+
+### Required software
+
+Install these tools on a fresh machine before starting:
+
+- Git
+- Node.js `>=18`
+- npm
+- MySQL 8.0+ or Docker Desktop / Docker Engine
+
+Optional but useful:
+
+- a database client such as MySQL Shell, MySQL Workbench, or the `mysql` CLI
+
+### Clone the repository
+
+```bash
+git clone https://github.com/iammarguuss/ulda-bachelor.git
+cd ulda-bachelor
+```
+
+### Install repository-level tooling
+
+The root repository contains linting, type-checking, and documentation tooling:
+
+```bash
+npm install
+```
+
+Useful root commands:
+
+```bash
+npm run lint
+npm run typecheck
+npm run check
+npm run docs:build
+```
+
+### Prepare the main deployment target
+
+Install the application dependencies for `applications/ulda-crud`:
+
+```bash
+cd applications/ulda-crud
+npm install
+```
+
+### Configure the database
+
+Use the provided example configuration as a starting point:
+
+```bash
+cp .env.example .env
+```
+
+If you are on Windows without `cp`, create `.env` manually from `.env.example`.
+
+Review at least these variables:
+
+- `PORT`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `DB_POOL_LIMIT`
+
+Optional Docker fallback variables already supported by the application:
+
+- `DB_DOCKER_ENABLE`
+- `DB_DOCKER_IMAGE`
+- `DB_DOCKER_CONTAINER`
+- `DB_DOCKER_VOLUME`
+- `DB_DOCKER_ROOT_PASSWORD`
+
+### Run the application in development mode
+
+From `applications/ulda-crud`:
+
+```bash
+npm run dev
+```
+
+After startup, verify the main endpoints:
+
+- `http://localhost:8787/health`
+- `http://localhost:8787/config`
+- `http://localhost:8787/browser-test/`
+
+### Basic day-to-day operations
+
+From the repository root:
+
+```bash
+npm run check
+npm run docs:build
+```
+
+From `applications/ulda-crud`:
+
+```bash
+npm run dev
+npm test
+```
+
+More deployment, update, and backup guidance is documented in:
+
+- `docs/deployment.md`
+- `docs/update.md`
+- `docs/backup.md`
+
 ## Documentation conventions
 
 This repository uses **JSDoc** as the primary code documentation style for JavaScript source files.
